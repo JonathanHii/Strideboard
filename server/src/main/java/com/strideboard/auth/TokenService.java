@@ -12,14 +12,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenService {
     private final JwtEncoder encoder;
-    public TokenService(JwtEncoder encoder) { this.encoder = encoder; }
+
+    public TokenService(JwtEncoder encoder) {
+        this.encoder = encoder;
+    }
 
     public String generateToken(Authentication authentication) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("strideboard")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .expiresAt(now.plus(1, ChronoUnit.HOURS)) // expires 1 hour
                 .subject(authentication.getName())
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react";
 import { workService } from "@/services/workService";
+import { authService } from "@/services/authService";
+import Link from 'next/link';
 
 export default function Home() {
   const [message, setMessage] = useState("Loading...");
@@ -24,6 +26,7 @@ export default function Home() {
     <div>
       {/* Use curly braces {message} to render the variable, not the string "message" */}
       <h1>{message}</h1>
+      <h1><Link href = "/login"><button onClick={authService.logout}>Log-Out</button></Link></h1>
     </div>
   );
 }
