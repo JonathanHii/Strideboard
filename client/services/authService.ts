@@ -1,33 +1,42 @@
+import Cookies from 'js-cookie';
+
 const API_URL = "http://localhost:8080/api/auth";
 
 export const authService = {
-  // Login (The "POST /token" with Basic Auth)
   async login(email: string, password: string) {
     const credentials = btoa(`${email}:${password}`);
-    
-    const response = await fetch(`${API_URL}/token`, {
+
+    const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-      },
+      headers: { 'Authorization': `Basic ${credentials}` },
     });
 
     if (!response.ok) throw new Error("Login failed");
 
     const token = await response.text();
-    
-    // Save to localStorage so we can "Reuse" it later
-    localStorage.setItem("stride_token", token);
+
+    // SAVE TO COOKIE so middleware can read it
+    Cookies.set('stride_token', token, { expires: 1, secure: true, sameSite: 'strict' });
+
     return token;
   },
 
-  // Get the Token from storage
-  getToken() {
-    return localStorage.getItem("stride_token");
+  async register(email: string, password: string, fullName: string) {
+    const response = await fetch(`${API_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, fullName }),
+    });
+
+    if (!response.ok) throw new Error("Registration failed");
+    return true;
   },
 
-  // 3. Logout
+  getToken() {
+    return Cookies.get('stride_token');
+  },
+
   logout() {
-    localStorage.removeItem("stride_token");
+    Cookies.remove('stride_token');
   }
 };

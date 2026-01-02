@@ -25,4 +25,20 @@ public class JpaUserDetailsService implements UserDetailsService {
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
+
+    public void registerUser(RegisterRequest request) {
+        // Check if user already exists
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already in use");
+        }
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(request.getPassword()) // 
+                .fullName(request.getFullName())
+                .build();
+
+        userRepository.save(user);
+    }
+
 }
