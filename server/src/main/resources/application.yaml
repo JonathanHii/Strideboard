@@ -1,3 +1,9 @@
+# RSA Keys (Global configuration)
+rsa:
+  public-key: "classpath:certs/public.pem"
+  private-key: "classpath:certs/private.pem"
+
+
 spring:
   application:
     name: strideboard
