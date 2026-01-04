@@ -1,4 +1,4 @@
-package com.strideboard.auth;
+package com.strideboard.data.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
