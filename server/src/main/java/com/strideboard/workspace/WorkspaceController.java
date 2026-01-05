@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +30,7 @@ public class WorkspaceController {
     private final UserRepository userRepository;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Workspace>> getMyWorkspaces(Authentication auth) {
         // Find the user by email (principal name)
         User user = userRepository.findByEmail(auth.getName())
@@ -43,6 +45,7 @@ public class WorkspaceController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<Workspace> createWorkspace(@RequestBody Workspace workspace, Authentication auth) {
         // Generate a slug (simple version: "My Team" -> "my-team")
         workspace.setSlug(workspace.getName().toLowerCase().replaceAll(" ", "-"));
