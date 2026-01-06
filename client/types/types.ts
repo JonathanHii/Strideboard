@@ -4,6 +4,7 @@ export interface Workspace {
   slug: string;
   memberCount: number;  
   projectCount: number;
+  projects: Project[];
 }
 
 export interface Membership {
@@ -15,4 +16,12 @@ export interface Membership {
 
 export interface CreateWorkspaceRequest {
   name: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string; // ISO string from LocalDateTime
+  workspaceId?: string; 
 }

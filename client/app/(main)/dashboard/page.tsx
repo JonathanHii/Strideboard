@@ -29,7 +29,7 @@ export default function WorkspacesPage() {
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Your Workspaces</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium">
           <Plus className="w-5 h-5" />
           Create Workspace
