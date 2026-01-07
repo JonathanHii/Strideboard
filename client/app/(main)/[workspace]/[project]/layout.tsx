@@ -61,7 +61,7 @@ export default function ProjectLayout({
 
   return (
     <div className="flex flex-col h-full w-full bg-white">
-      <header className="max-w-7xl w-full mx-auto p-8 pb-0">
+      <header className="max-w-7xl w-full mx-auto px-8 pt-4 pb-0">
         <div className="flex items-center justify-between mb-8 h-[40px]">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
             {isLoading ? (
@@ -97,7 +97,7 @@ export default function ProjectLayout({
 
       <main className="flex-1 overflow-auto bg-white">
         {/* Match the horizontal alignment for the children */}
-        <div className="max-w-7xl mx-auto p-8">
+        <div className="max-w-7xl mx-auto px-8 pt-4 pb-8">
           {children}
         </div>
       </main>

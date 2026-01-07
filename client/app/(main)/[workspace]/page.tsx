@@ -32,7 +32,7 @@ export default function WorkspaceProjectsPage() {
     }, [workspaceSlug]);
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
+        <div className="px-8 pt-4 pb-8 max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
