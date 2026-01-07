@@ -11,7 +11,7 @@ export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
     const bgColor = colors[Math.abs(workspace.id.length) % colors.length];
 
     return (
-        <Link href={`/${workspace.slug}`} className="block transition-transform hover:scale-[1.02]">
+        <Link href={`/${workspace.id}`} className="block transition-transform hover:scale-[1.02]">
             <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center mb-4 text-white font-bold text-xl`}>
                     {workspace.name.charAt(0)}

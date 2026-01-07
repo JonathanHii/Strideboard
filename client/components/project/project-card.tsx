@@ -15,7 +15,7 @@ export default function ProjectCard({ project, workspaceSlug }: ProjectCardProps
 
     return (
         <Link
-            href={`/${workspaceSlug}/${project.id}/board`}
+            href={`/${workspaceSlug}/${project.id}`}
             className="block transition-transform hover:scale-[1.02]"
         >
             <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
