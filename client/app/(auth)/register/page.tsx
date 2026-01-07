@@ -1,78 +1,101 @@
 "use client";
+
 import { useState } from "react";
 import { authService } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2, User, Mail, Lock } from "lucide-react";
 
 export default function RegisterPage() {
-    const [fullName, setFullName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-    const handleRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await authService.register(email, password, fullName);
-            // Success! Send them to login
-            alert("Registration successful! Please log in.");
-            router.push("/login");
-        } catch (err: any) {
-            alert(err.message || "Registration failed. Try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await authService.register(email, password, fullName);
+      alert("Registration successful! Please log in.");
+      router.push("/login");
+    } catch (err: any) {
+      alert(err.message || "Registration failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <form onSubmit={handleRegister} className="p-8 bg-white shadow-md rounded-lg w-96">
-                <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Create Account</h1>
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="w-full max-w-md">
+        <form onSubmit={handleRegister} className="p-8 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">Get Started</h1>
+            <p className="text-gray-500 mt-2">Create your Strideboard account</p>
+          </div>
 
-                <input
-                    type="text"
-                    placeholder="Full Name"
-                    required
-                    className="w-full p-2 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setFullName(e.target.value)}
-                />
+          <div className="space-y-4">
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Full Name"
+                required
+                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    required
-                    className="w-full p-2 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="email"
+                placeholder="Email address"
+                required
+                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    className="w-full p-2 mb-6 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="password"
+                placeholder="Create Password"
+                required
+                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
 
-                <button
-                    disabled={loading}
-                    className={`w-full text-white p-2 rounded transition font-semibold ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                        }`}
-                >
-                    {loading ? "Registering..." : "Sign Up"}
-                </button>
+          <button
+            disabled={loading}
+            className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-lg transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Sign Up"
+            )}
+          </button>
 
-                <div className="mt-6 text-center text-sm text-gray-600 border-t pt-4">
-                    Already have an account?{" "}
-                    <Link
-                        href="/login"
-                        className="text-blue-600 font-semibold hover:underline"
-                    >
-                        Login
-                    </Link>
-                </div>
-            </form>
-        </div>
-    );
+          <div className="mt-8 text-center text-sm text-gray-600 border-t border-gray-100 pt-6">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
