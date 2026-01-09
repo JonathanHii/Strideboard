@@ -94,9 +94,4 @@ public class WorkItem {
     public UUID getProjectId() {
         return project != null ? project.getId() : null;
     }
-
-    @JsonProperty("assigneeName")
-    public String getAssigneeName() {
-        return assignee != null ? assignee.getFullName() : "Unassigned";
-    }
 }

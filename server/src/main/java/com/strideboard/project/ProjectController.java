@@ -53,7 +53,7 @@ public class ProjectController {
         }
 
         // fetch
-        List<WorkItem> items = workItemRepository.findByProjectIdOrderByPositionAsc(projectId);
+        List<WorkItem> items = workItemRepository.findByProject_IdOrderByPositionAsc(projectId);
         return ResponseEntity.ok(items);
     }
 

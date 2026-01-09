@@ -1,13 +1,15 @@
+export interface User {
+  id: string;         // Maps to UUID
+  email: string;      // Maps to String
+  fullName: string;   // Maps to String
+}
+
 export interface Workspace {
   id: string;
   name: string;
   slug: string;
   memberCount: number;
   projectCount: number;
-}
-
-export interface CreateWorkspaceRequest {
-  name: string;
 }
 
 export interface Project {
@@ -36,6 +38,8 @@ export interface WorkItem {
   createdAt: string;
   updatedAt: string;
 
+  assignee: User | null; 
+  creator: User;
+
   projectId: string;
-  assigneeName: string;
 }
