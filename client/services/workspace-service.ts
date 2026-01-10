@@ -1,4 +1,4 @@
-import { Workspace, CreateWorkspaceRequest, Project } from "@/types/types";
+import { Workspace, CreateWorkspaceRequest, Project, UserSummary } from "@/types/types";
 import { authService } from "./authService";
 
 const API_BASE_URL = "http://localhost:8080/api/workspaces";
@@ -22,6 +22,23 @@ export const workspaceService = {
     }
 
     return data;
+  },
+
+  async searchUsers(query: string): Promise<UserSummary[]> {
+    const token = authService.getToken();
+    // Only search if 2+ chars to save API calls
+    if (!query || query.length < 2) return [];
+
+    const response = await fetch(`${API_BASE_URL}/users/search?query=${encodeURIComponent(query)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) return [];
+    return response.json();
   },
 
   async createWorkspace(data: CreateWorkspaceRequest): Promise<Workspace> {

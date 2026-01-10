@@ -1,6 +1,10 @@
 package com.strideboard.workspace;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -12,12 +16,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.strideboard.data.project.Project;
 import com.strideboard.data.project.ProjectRepository;
 import com.strideboard.data.user.User;
 import com.strideboard.data.user.UserRepository;
+import com.strideboard.data.workspace.CreateWorkspaceRequest;
 import com.strideboard.data.workspace.Membership;
 import com.strideboard.data.workspace.MembershipRepository;
 import com.strideboard.data.workspace.Workspace;
@@ -49,27 +55,87 @@ public class WorkspaceController {
                 return ResponseEntity.ok(workspaces);
         }
 
+        @GetMapping("/users/search")
+        @Transactional(readOnly = true)
+        public ResponseEntity<List<Map<String, String>>> searchUsers(@RequestParam String query) {
+                // 1. Validation
+                if (query == null || query.trim().length() < 2) {
+                        return ResponseEntity.ok(Collections.emptyList());
+                }
+
+                // 2. Search Database
+                List<User> users = userRepository.findByEmailContainingIgnoreCase(query);
+
+                // 3. Manual Mapping (Uses a loop to prevent type inference errors)
+                List<Map<String, String>> result = new ArrayList<>();
+
+                for (User u : users) {
+                        Map<String, String> map = new HashMap<>();
+                        map.put("id", u.getId().toString());
+                        map.put("email", u.getEmail());
+                        // Use getFullName() because your Entity uses 'fullName', not 'name'
+                        map.put("name", u.getFullName() != null ? u.getFullName() : "");
+
+                        result.add(map);
+                }
+
+                // 4. Limit to top 10 results manually
+                if (result.size() > 10) {
+                        return ResponseEntity.ok(result.subList(0, 10));
+                }
+
+                return ResponseEntity.ok(result);
+        }
+
         @PostMapping
         @Transactional
-        public ResponseEntity<Workspace> createWorkspace(@RequestBody Workspace workspace, Authentication auth) {
-                // Generate a slug (simple version: "My Team" -> "my-team")
-                workspace.setSlug(workspace.getName().toLowerCase().replaceAll(" ", "-"));
+        public ResponseEntity<Workspace> createWorkspace(@RequestBody CreateWorkspaceRequest request,
+                        Authentication auth) {
+                // Setup Workspace from DTO
+                Workspace workspace = new Workspace();
+                workspace.setName(request.getName());
 
-                // Save Workspace
+                // Handle slug (use provided one or generate from name)
+                if (request.getSlug() != null && !request.getSlug().isEmpty()) {
+                        workspace.setSlug(request.getSlug());
+                } else {
+                        workspace.setSlug(request.getName().toLowerCase().replaceAll(" ", "-"));
+                }
+
                 Workspace savedWorkspace = workspaceRepository.save(workspace);
 
-                // Find Current User
+                // Find Current User (The Creator)
                 User currentUser = userRepository.findByEmail(auth.getName())
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                // Create and Save Membership (Owner/Admin)
-                Membership membership = Membership.builder()
+                // Add Creator as ADMIN
+                Membership ownerMembership = Membership.builder()
                                 .user(currentUser)
                                 .workspace(savedWorkspace)
                                 .role("ADMIN")
                                 .build();
 
-                membershipRepository.save(membership);
+                membershipRepository.save(ownerMembership);
+
+                // 4. Add other users from the list
+                if (request.getMemberEmails() != null && !request.getMemberEmails().isEmpty()) {
+                        for (String email : request.getMemberEmails()) {
+                                // Skip if the email is the creator (already added as ADMIN)
+                                if (email.equalsIgnoreCase(currentUser.getEmail())) {
+                                        continue;
+                                }
+
+                                // Check if user exists in DB before adding
+                                userRepository.findByEmail(email).ifPresent(user -> {
+                                        Membership member = Membership.builder()
+                                                        .user(user)
+                                                        .workspace(savedWorkspace)
+                                                        .role("MEMBER") // Default role for invitees
+                                                        .build();
+                                        membershipRepository.save(member);
+                                });
+                        }
+                }
 
                 return ResponseEntity.ok(savedWorkspace);
         }

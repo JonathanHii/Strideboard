@@ -4,8 +4,15 @@ export interface User {
   fullName: string;   // Maps to String
 }
 
+export interface UserSummary {
+  id: string;
+  email: string;
+  name: string;
+}
+
 export interface CreateWorkspaceRequest {
   name: string;
+  memberEmails?: string[]; // Optional: Array of emails to invite immediately
 }
 
 export interface Workspace {
