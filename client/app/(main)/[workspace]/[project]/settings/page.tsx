@@ -8,7 +8,6 @@ import {
     Save, 
     Trash2, 
     AlertTriangle, 
-    Users, 
     Archive,
     Palette
 } from "lucide-react";
@@ -34,10 +33,10 @@ export default function SettingsPage() {
                     const data = await workspaceService.getProjectById(workspaceId, projectId);
                     setProject(data);
                     
-                    setProjectName(data. name || "");
+                    setProjectName(data.name || "");
                     setProjectDescription(data.description || "");
                 }
-            } catch (err:  any) {
+            } catch (err: any) {
                 setError(err.message || "Failed to load project settings");
             } finally {
                 setIsLoading(false);
@@ -51,7 +50,7 @@ export default function SettingsPage() {
     };
 
     const handleSaveAppearance = () => {
-        console. log("Save appearance settings", { accentColor });
+        console.log("Save appearance settings", { accentColor });
     };
 
     const handleArchiveProject = () => {
@@ -78,16 +77,16 @@ export default function SettingsPage() {
                     </div>
                     <div className="p-6 space-y-5">
                         <div>
-                            <label htmlFor="projectName" className="block text-sm font-medium text-slate-700 mb-1. 5">
+                            <label htmlFor="projectName" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Project Name
                             </label>
                             <input
                                 id="projectName"
                                 type="text"
                                 value={projectName}
-                                onChange={(e) => setProjectName(e. target.value)}
+                                onChange={(e) => setProjectName(e.target.value)}
                                 placeholder="Enter project name"
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus: ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                             />
                         </div>
 
@@ -101,7 +100,7 @@ export default function SettingsPage() {
                                 onChange={(e) => setProjectDescription(e.target.value)}
                                 placeholder="Describe your project..."
                                 rows={3}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus: ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
                             />
                         </div>
 
@@ -141,7 +140,7 @@ export default function SettingsPage() {
                                             className={`h-8 w-8 rounded-full transition-all ${
                                                 accentColor === color 
                                                     ? "ring-2 ring-offset-2 ring-slate-400 scale-110" 
-                                                    :  "hover:scale-105"
+                                                    : "hover:scale-105"
                                             }`}
                                             style={{ backgroundColor: color }}
                                         />
@@ -162,30 +161,6 @@ export default function SettingsPage() {
                                 Save Changes
                             </button>
                         </div>
-                    </div>
-                </section>
-
-                {/* --- Team Members Quick Access --- */}
-                <section className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                        <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-slate-500" />
-                            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                                Team Members
-                            </h2>
-                        </div>
-                    </div>
-                    <div className="p-6">
-                        <p className="text-sm text-slate-600 mb-4">
-                            Manage who has access to this project and their permissions.
-                        </p>
-                        <button
-                            onClick={() => console.log("Navigate to team settings")}
-                            className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                        >
-                            <Users className="h-4 w-4" />
-                            Manage Team Members
-                        </button>
                     </div>
                 </section>
 
@@ -227,7 +202,7 @@ export default function SettingsPage() {
                             </div>
                             <button
                                 onClick={handleDeleteProject}
-                                className="flex items-center gap-2 bg-red-600 hover: bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
                             >
                                 <Trash2 className="h-4 w-4" />
                                 Delete

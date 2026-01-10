@@ -39,7 +39,7 @@ export default function WorkspacesPage() {
     }
   };
 
-  // --- Search Logic ---
+  // --- Search Logic for Invites ---
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
@@ -109,64 +109,63 @@ export default function WorkspacesPage() {
     setSearchResults([]);
   };
 
-  return (
-    <div className="pb-12 max-w-7xl mx-auto relative px-4 sm:px-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pt-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Manage your teams and projects.</p>
+  if (loading) {
+    return (
+        <div className="flex flex-col items-center justify-center py-24 text-gray-500">
+            <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+            <p className="animate-pulse">Retrieving your workspaces...</p>
         </div>
+    );
+  }
+
+  return (
+    <div className="pb-8 max-w-7xl mx-auto">
+      {/* Header Section - Matches WorkspaceProjectsPage */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Dashboard
+        </h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm font-medium"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm"
         >
           <Plus className="w-5 h-5" />
           Create Workspace
         </button>
       </div>
 
-      {/* Main Search Bar */}
+      {/* Main Search Bar - Matches WorkspaceProjectsPage */}
       <div className="relative mb-8 max-w-sm">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
           placeholder="Search your workspaces..."
-          className="w-full pl-10 pr-4 h-11 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+          className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
         />
       </div>
 
       {/* Grid Section */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-          <Loader2 className="w-10 h-10 animate-spin mb-4 text-indigo-500" />
-          <p className="font-medium">Fetching your workspaces...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {workspaces.map((ws) => (
-            <WorkspaceCard key={ws.id} workspace={ws} />
-          ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {workspaces.map((ws) => (
+          <WorkspaceCard key={ws.id} workspace={ws} />
+        ))}
 
-          {workspaces.length === 0 && (
-            <div className="col-span-full border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center flex flex-col items-center bg-gray-50/50">
-              <div className="bg-white p-4 rounded-full mb-4 shadow-sm">
-                <Plus className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">No workspaces yet</h3>
-              <p className="text-gray-500 mb-6 max-w-sm">
-                Create your first workspace to start collaborating with your team.
-              </p>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="text-indigo-600 font-medium hover:text-indigo-700 hover:underline"
-              >
-                Create one now &rarr;
-              </button>
+        {workspaces.length === 0 && (
+          <div className="col-span-full py-20 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center">
+            <div className="bg-gray-50 p-4 rounded-full mb-4">
+              <Plus className="w-8 h-8 text-gray-300" />
             </div>
-          )}
-        </div>
-      )}
+            <h3 className="text-lg font-semibold text-gray-900">No workspaces yet</h3>
+            <p className="text-gray-500 mb-6">Create your first workspace to start collaborating.</p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-indigo-600 font-medium hover:text-indigo-700 hover:underline"
+            >
+              Create one now &rarr;
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* --- Create Workspace Modal --- */}
       {isModalOpen && (
@@ -260,7 +259,7 @@ export default function WorkspacesPage() {
                   )}
                 </div>
 
-                {/* --- Selected Emails List (Fixed Height Placeholder) --- */}
+                {/* --- Selected Emails List --- */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -276,7 +275,6 @@ export default function WorkspacesPage() {
                     )}
                   </div>
 
-                  {/* Fixed Height Box: h-32 ensures modal size never changes */}
                   <div className="h-36 w-full border border-gray-200 rounded-xl bg-gray-50/50 p-2 overflow-y-auto overscroll-contain">
                     {invitedEmails.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-gray-400">

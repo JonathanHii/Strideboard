@@ -130,7 +130,7 @@ export default function ListPage() {
             </div>
 
             {/* --- Table Container (Scrollable Area) --- */}
-            <div className="flex-1 overflow-auto min-h-0 border border-slate-200 rounded-xl">
+            <div className="flex-1 overflow-auto min-h-0 border border-slate-200 rounded-xl [scrollbar-gutter:stable]">
                 <table className="w-full min-w-[800px]">
                     <thead className="bg-slate-50 sticky top-0 z-10">
                         <tr>

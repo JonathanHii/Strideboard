@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.strideboard.data.project.CreateProjectRequest;
 import com.strideboard.data.project.Project;
 import com.strideboard.data.project.ProjectRepository;
 import com.strideboard.data.user.User;
@@ -200,6 +201,40 @@ public class WorkspaceController {
                 }
 
                 return ResponseEntity.ok(project);
+        }
+
+        @PostMapping("/{workspaceId}/projects")
+        @Transactional
+        public ResponseEntity<Project> createProject(
+                        @PathVariable UUID workspaceId,
+                        @RequestBody CreateProjectRequest request,
+                        Authentication auth) {
+
+                // Find the user (for security context)
+                User user = userRepository.findByEmail(auth.getName())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                // Security Check: Verify user is a member of this workspace
+                boolean isMember = membershipRepository.existsByUserIdAndWorkspaceId(user.getId(), workspaceId);
+                if (!isMember) {
+                        return ResponseEntity.status(403).build(); // Forbidden
+                }
+
+                // Fetch the Workspace entity
+                Workspace workspace = workspaceRepository.findById(workspaceId)
+                                .orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+                // Build the Project using your @Builder
+                Project project = Project.builder()
+                                .name(request.getName())
+                                .description(request.getDescription())
+                                .workspace(workspace) // Crucial for the @ManyToOne relationship
+                                .build();
+
+                //  Save and Return
+                Project savedProject = projectRepository.save(project);
+
+                return ResponseEntity.ok(savedProject);
         }
 
 }

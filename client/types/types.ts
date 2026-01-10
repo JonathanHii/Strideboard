@@ -23,6 +23,11 @@ export interface Workspace {
   projectCount: number;
 }
 
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+}
+
 export interface Project {
   id: string;
   name: string;

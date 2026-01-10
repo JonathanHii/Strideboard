@@ -120,7 +120,7 @@ export default function BoardPage() {
             </div>
 
             {/* --- Kanban Columns (Scrollable Area) --- */}
-            <div className="flex flex-1 gap-6 overflow-x-auto overflow-y-auto min-h-0 pb-4">
+            <div className="flex flex-1 gap-6 overflow-x-auto overflow-y-auto min-h-0 pb-4 [scrollbar-gutter:stable]">
                 {COLUMNS.map((status) => (
                     <div key={status} className="flex flex-col min-w-[280px] flex-1 max-w-[350px]">
                         {/* Column Header */}

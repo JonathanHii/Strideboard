@@ -1,4 +1,4 @@
-import { Workspace, CreateWorkspaceRequest, Project, UserSummary } from "@/types/types";
+import { Workspace, CreateWorkspaceRequest, Project, UserSummary, CreateProjectRequest } from "@/types/types";
 import { authService } from "./authService";
 
 const API_BASE_URL = "http://localhost:8080/api/workspaces";
@@ -57,6 +57,27 @@ export const workspaceService = {
 
     if (!response.ok) {
       throw new Error(result.message || "Failed to create workspace");
+    }
+
+    return result;
+  },
+
+  async createProject(workspaceId: string, data: CreateProjectRequest): Promise<Project> {
+    const token = authService.getToken();
+
+    const response = await fetch(`${API_BASE_URL}/${workspaceId}/projects`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to create project");
     }
 
     return result;
