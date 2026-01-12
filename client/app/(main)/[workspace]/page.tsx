@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { FolderOpen, Plus, Search, Loader2, X, Settings, Save, Trash2, Mail, User } from "lucide-react";
+import { FolderOpen, Plus, Search, Loader2, X, Settings, Trash2, Mail, User, Check } from "lucide-react";
 import { Workspace, Project, WorkspaceMember, UserSummary } from "@/types/types";
 import { workspaceService } from "@/services/workspace-service";
 import ProjectCard from "@/components/project/project-card";
@@ -31,7 +31,6 @@ export default function WorkspaceProjectsPage() {
   // Modal State (Settings)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsName, setSettingsName] = useState("");
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Add People State
   const [isAddPeopleOpen, setIsAddPeopleOpen] = useState(false);
@@ -47,6 +46,10 @@ export default function WorkspaceProjectsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // New name state
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   // --- Data Loading ---
   const loadData = useCallback(async () => {
     if (!workspaceId) return;
@@ -55,7 +58,7 @@ export default function WorkspaceProjectsPage() {
       // Only set loading to true on initial load, not on refresh
       if (projects.length === 0) setLoading(true);
 
-      const [projectData, workspaceList] = await Promise.all([
+      const [projectData, workspaceList] = await Promise. all([
         workspaceService.getWorkspaceProjects(workspaceId),
         workspaceService.getMyWorkspaces()
       ]);
@@ -74,6 +77,31 @@ export default function WorkspaceProjectsPage() {
     }
   }, [workspaceId]);
 
+
+  // --- Update Workspace Name Handler ---
+  const handleUpdateWorkspaceName = async () => {
+    if (!settingsName.trim() || settingsName === workspace?.name) return;
+
+    setIsSavingName(true);
+    setSaveSuccess(false);
+    try {
+      const updatedWorkspace = await workspaceService. updateWorkspaceName(workspaceId, settingsName.trim());
+      setWorkspace(updatedWorkspace);
+      window.dispatchEvent(new Event("workspace-updated")); // Refresh sidebar if needed
+      
+      // Show success state
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000); // Reset after 2 seconds
+    } catch (error) {
+      console. error("Failed to update workspace name", error);
+      alert(error instanceof Error ? error. message : "Failed to update workspace name.   Please try again.");
+      // Reset to original name on error
+      if (workspace) setSettingsName(workspace. name);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
   // --- Load Members when Settings Modal Opens ---
   const loadMemberData = useCallback(async () => {
     if (!workspaceId) return;
@@ -81,13 +109,13 @@ export default function WorkspaceProjectsPage() {
     try {
       const [currentUserData, membersData] = await Promise.all([
         workspaceService.getCurrentUserInWorkspace(workspaceId),
-        workspaceService.getWorkspaceMembers(workspaceId)
+        workspaceService. getWorkspaceMembers(workspaceId)
       ]);
 
       setCurrentUser(currentUserData);
       setMembers(membersData);
     } catch (err) {
-      console.error("Error loading member data:", err);
+      console. error("Error loading member data:", err);
     }
   }, [workspaceId]);
 
@@ -105,7 +133,7 @@ export default function WorkspaceProjectsPage() {
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
-    if (!inviteEmail || inviteEmail.length < 2) {
+    if (! inviteEmail || inviteEmail.length < 2) {
       setSearchResults([]);
       return;
     }
@@ -114,7 +142,7 @@ export default function WorkspaceProjectsPage() {
       setIsSearching(true);
       try {
         const results = await workspaceService.searchUsersNotInWorkspace(workspaceId, inviteEmail);
-        const filtered = results.filter((u) => !invitedEmails.includes(u.email));
+        const filtered = results.filter((u) => !invitedEmails.includes(u. email));
         setSearchResults(filtered);
       } catch (err) {
         console.error("Search failed", err);
@@ -135,14 +163,14 @@ export default function WorkspaceProjectsPage() {
       if (parts.length >= 2) {
         return (parts[0][0] + parts[1][0]).toUpperCase();
       }
-      return name.slice(0, 2).toUpperCase();
+      return name. slice(0, 2).toUpperCase();
     }
     return email.slice(0, 2).toUpperCase();
   };
 
   // --- Helper to get avatar color based on role ---
   const getAvatarColor = (role: string): string => {
-    switch (role.toUpperCase()) {
+    switch (role. toUpperCase()) {
       case "ADMIN":
         return "bg-indigo-100 text-indigo-700";
       case "MEMBER":
@@ -156,9 +184,9 @@ export default function WorkspaceProjectsPage() {
 
   // --- Add People Handlers ---
   const addEmail = (email: string) => {
-    if (!email || !email.includes("@")) return;
+    if (! email || ! email.includes("@")) return;
 
-    if (!invitedEmails.includes(email)) {
+    if (! invitedEmails.includes(email)) {
       setInvitedEmails([...invitedEmails, email]);
       setInviteEmail("");
       setSearchResults([]);
@@ -174,12 +202,12 @@ export default function WorkspaceProjectsPage() {
 
     setIsInviting(true);
     try {
-      await workspaceService.addMembersToWorkspace(workspaceId, invitedEmails);
+      await workspaceService. addMembersToWorkspace(workspaceId, invitedEmails);
       await loadMemberData(); // Refresh members list
       closeAddPeopleModal();
     } catch (error) {
-      console.error("Failed to invite members", error);
-      alert(error instanceof Error ? error.message : "Failed to invite members.  Please try again.");
+      console. error("Failed to invite members", error);
+      alert(error instanceof Error ? error.message : "Failed to invite members.   Please try again.");
     } finally {
       setIsInviting(false);
     }
@@ -205,7 +233,7 @@ export default function WorkspaceProjectsPage() {
 
     setIsCreating(true);
     try {
-      await workspaceService.createProject(workspaceId, {
+      await workspaceService. createProject(workspaceId, {
         name: newName,
         description: newDescription
       });
@@ -214,7 +242,7 @@ export default function WorkspaceProjectsPage() {
       closeModal();
     } catch (error) {
       console.error("Failed to create project", error);
-      alert("Failed to create project. Please try again.");
+      alert("Failed to create project.   Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -226,19 +254,7 @@ export default function WorkspaceProjectsPage() {
     setNewDescription("");
   };
 
-  // --- Settings Handlers ---
-  const handleSaveSettings = async () => {
-    if (!settingsName.trim()) return;
-    setIsSavingSettings(true);
 
-    // Simulate API Call
-    setTimeout(() => {
-      setIsSavingSettings(false);
-      setIsSettingsOpen(false);
-      // Optimistic update
-      if (workspace) setWorkspace({ ...workspace, name: settingsName });
-    }, 1000);
-  };
 
   // --- Delete Workspace Handlers ---
   const handleDeleteWorkspace = async () => {
@@ -309,15 +325,15 @@ export default function WorkspaceProjectsPage() {
             placeholder="Filter projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            // Exact classes from WorkspacesPage (py-2 instead of py-2.5)
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus: ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+            // Exact classes from WorkspacesPage (py-2 instead of py-2. 5)
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:  ring-indigo-500/20 focus: border-indigo-500 outline-none transition-all"
           />
         </div>
 
         {/* Settings Button - Adjusted padding to match new search height */}
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className="p-2 bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm flex items-center gap-2"
+          className="p-2 bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-50 hover:  border-gray-300 transition-all shadow-sm flex items-center gap-2"
           title="Workspace Settings"
         >
           <Settings className="w-5 h-5" />
@@ -326,7 +342,7 @@ export default function WorkspaceProjectsPage() {
       </div>
 
       {/* Grid Content */}
-      {workspace ? (
+      {workspace ?  (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProjects.map((project) => (
             <ProjectCard
@@ -354,7 +370,7 @@ export default function WorkspaceProjectsPage() {
         </div>
       ) : (
         <div className="text-center py-20 bg-gray-50 rounded-xl text-gray-500">
-          Workspace not found.
+          Workspace not found. 
         </div>
       )}
 
@@ -367,11 +383,11 @@ export default function WorkspaceProjectsPage() {
             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 z-10 rounded-t-2xl">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Create New Project</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Start a new initiative in this workspace. </p>
+                <p className="text-sm text-gray-500 mt-0.5">Start a new initiative in this workspace.   </p>
               </div>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all"
+                className="text-gray-400 hover:  text-gray-600 hover:  bg-gray-100 p-2 rounded-full transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -388,8 +404,8 @@ export default function WorkspaceProjectsPage() {
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="e.g.  Website Redesign"
-                  className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-gray-900 placeholder: text-gray-400"
+                  placeholder="e.g.    Website Redesign"
+                  className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-gray-900 placeholder:   text-gray-400"
                   autoFocus
                 />
               </div>
@@ -403,7 +419,7 @@ export default function WorkspaceProjectsPage() {
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
                   placeholder="Briefly describe the goals of this project..."
-                  className="w-full px-4 py-3 h-32 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none text-gray-900 placeholder:text-gray-400"
+                  className="w-full px-4 py-3 h-32 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus: border-indigo-500 outline-none transition-all resize-none text-gray-900 placeholder:  text-gray-400"
                 />
               </div>
             </div>
@@ -418,13 +434,13 @@ export default function WorkspaceProjectsPage() {
               </button>
               <button
                 onClick={handleCreateProject}
-                disabled={!newName.trim() || isCreating}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled: bg-indigo-400 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
+                disabled={! newName.trim() || isCreating}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:  bg-indigo-400 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
               >
                 {isCreating ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating...
+                    Creating... 
                   </>
                 ) : (
                   <>Create Project</>
@@ -444,11 +460,11 @@ export default function WorkspaceProjectsPage() {
             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 z-10 rounded-t-2xl">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Workspace Settings</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Manage configuration and members. </p>
+                <p className="text-sm text-gray-500 mt-0.5">Manage configuration and members.   </p>
               </div>
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all"
+                className="text-gray-400 hover: text-gray-600 hover: bg-gray-100 p-2 rounded-full transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -465,12 +481,42 @@ export default function WorkspaceProjectsPage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Workspace Name
                     </label>
-                    <input
-                      type="text"
-                      value={settingsName}
-                      onChange={(e) => setSettingsName(e.target.value)}
-                      className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-gray-900"
-                    />
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={settingsName}
+                        onChange={(e) => setSettingsName(e.target.value)}
+                        className="flex-1 px-4 h-11 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:  border-indigo-500 outline-none transition-all font-medium text-gray-900"
+                      />
+                      <button
+                        onClick={handleUpdateWorkspaceName}
+                        disabled={
+                          !settingsName.trim() ||
+                          settingsName === workspace?. name ||
+                          isSavingName ||
+                          currentUser?.role. toUpperCase() !== "ADMIN"
+                        }
+                        className={`px-4 h-11 text-white rounded-xl font-medium transition-all shadow-sm flex items-center gap-2 min-w-[100px] justify-center ${
+                          saveSuccess
+                            ?  "bg-green-500 hover:bg-green-600"
+                            : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 "
+                        }`}
+                      >
+                        {isSavingName ?  (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving... 
+                          </>
+                        ) : saveSuccess ? (
+                          <>
+                            <Check className="w-4 h-4 animate-in zoom-in duration-200" />
+                            Saved!
+                          </>
+                        ) : (
+                          "Save"
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-blue-50 text-blue-700 rounded-xl text-sm">
                     <div className="bg-white p-2 rounded-lg shadow-sm">
@@ -518,7 +564,7 @@ export default function WorkspaceProjectsPage() {
 
                   {/* Other Members */}
                   {members
-                    .filter(member => currentUser && member.id !== currentUser.id)
+                    . filter(member => currentUser && member.id !== currentUser.id)
                     .map((member) => (
                       <div key={member.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
                         <div className="flex items-center gap-3">
@@ -532,7 +578,7 @@ export default function WorkspaceProjectsPage() {
                             <p className="text-xs text-gray-500">{member.role}</p>
                           </div>
                         </div>
-                        <button className="text-gray-400 hover: text-red-600 transition-colors">
+                        <button className="text-gray-400 hover:  text-red-600 transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -555,12 +601,12 @@ export default function WorkspaceProjectsPage() {
                 <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex items-center justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-red-900">Delete Workspace</h4>
-                    <p className="text-sm text-red-700 mt-1">Permanently remove this workspace and all projects.</p>
+                    <p className="text-sm text-red-700 mt-1">Permanently remove this workspace and all projects.  </p>
                   </div>
                   <button
                     onClick={openDeleteConfirm}
                     disabled={currentUser?.role.toUpperCase() !== "ADMIN"}
-                    className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled: cursor-not-allowed"
                   >
                     Delete Workspace
                   </button>
@@ -571,32 +617,7 @@ export default function WorkspaceProjectsPage() {
               </section>
             </div>
 
-            {/* 3. Footer */}
-            <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 shrink-0 rounded-b-2xl">
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover: border-gray-300 rounded-xl font-medium transition-all shadow-sm"
-              >
-                Close
-              </button>
-              <button
-                onClick={handleSaveSettings}
-                disabled={isSavingSettings}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
-              >
-                {isSavingSettings ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
+
 
           </div>
         </div>
@@ -604,18 +625,18 @@ export default function WorkspaceProjectsPage() {
 
       {/* --- Add People Modal --- */}
       {isAddPeopleOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-sm transition-all duration-300">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm: p-6 bg-black/70 backdrop-blur-sm transition-all duration-300">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] transform transition-all animate-in fade-in zoom-in-95 duration-200">
 
             {/* Header */}
             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 z-10 rounded-t-2xl">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Add People</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Invite members to this workspace. </p>
+                <p className="text-sm text-gray-500 mt-0.5">Invite members to this workspace.  </p>
               </div>
               <button
                 onClick={closeAddPeopleModal}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all"
+                className="text-gray-400 hover: text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -648,7 +669,7 @@ export default function WorkspaceProjectsPage() {
                   />
 
                   {/* Dropdown Results */}
-                  {(searchResults.length > 0 || isSearching) && (
+                  {(searchResults. length > 0 || isSearching) && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-47 overflow-y-auto z-50 ring-1 ring-black/5">
                       {isSearching ? (
                         <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
@@ -696,7 +717,7 @@ export default function WorkspaceProjectsPage() {
                 </div>
 
                 <div className="h-36 w-full border border-gray-200 rounded-xl bg-gray-50/50 p-2 overflow-y-auto overscroll-contain">
-                  {invitedEmails.length === 0 ? (
+                  {invitedEmails.length === 0 ?  (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400">
                       <Mail className="w-5 h-5 mb-1 opacity-20" />
                       <span className="text-xs">No users selected yet</span>
@@ -706,14 +727,14 @@ export default function WorkspaceProjectsPage() {
                       {invitedEmails.map((email) => (
                         <span
                           key={email}
-                          className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-medium border border-indigo-100 shadow-sm animate-in fade-in zoom-in duration-200"
+                          className="inline-flex items-center gap-1. 5 pl-3 pr-2 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-medium border border-indigo-100 shadow-sm animate-in fade-in zoom-in duration-200"
                         >
                           {email}
                           <button
                             onClick={() => handleRemoveEmail(email)}
-                            className="text-gray-400 hover: text-red-500 hover:bg-red-50 p-0.5 rounded-md transition-all"
+                            className="text-gray-400 hover:   text-red-500 hover:bg-red-50 p-0.5 rounded-md transition-all"
                           >
-                            <X className="w-3. 5 h-3.5" />
+                            <X className="w-3.   5 h-3.5" />
                           </button>
                         </span>
                       ))}
@@ -728,19 +749,19 @@ export default function WorkspaceProjectsPage() {
             <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 shrink-0 rounded-b-2xl">
               <button
                 onClick={closeAddPeopleModal}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover: border-gray-300 rounded-xl font-medium transition-all shadow-sm"
+                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:  border-gray-300 rounded-xl font-medium transition-all shadow-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleInviteMembers}
                 disabled={invitedEmails.length === 0 || isInviting}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
               >
-                {isInviting ? (
+                {isInviting ?  (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Inviting...
+                    Inviting... 
                   </>
                 ) : (
                   <>
@@ -757,7 +778,7 @@ export default function WorkspaceProjectsPage() {
 
       {/* --- Delete Confirmation Modal --- */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-sm transition-all duration-300">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:  p-6 bg-black/70 backdrop-blur-sm transition-all duration-300">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col transform transition-all animate-in fade-in zoom-in-95 duration-200">
 
             {/* Header */}
@@ -770,7 +791,7 @@ export default function WorkspaceProjectsPage() {
               </div>
               <button
                 onClick={closeDeleteConfirm}
-                className="text-gray-400 hover:text-gray-600 hover: bg-gray-100 p-2 rounded-full transition-all"
+                className="text-gray-400 hover:  text-gray-600 hover:  bg-gray-100 p-2 rounded-full transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -780,7 +801,7 @@ export default function WorkspaceProjectsPage() {
             <div className="p-6 space-y-4">
               <div className="bg-red-50 border border-red-100 rounded-xl p-4">
                 <p className="text-sm text-red-800">
-                  <strong>Warning: </strong> This action cannot be undone. This will permanently delete the
+                  <strong>Warning:   </strong> This action cannot be undone.  This will permanently delete the
                   <strong className="mx-1">{workspace?.name}</strong>
                   workspace, all of its projects, and remove all member associations.
                 </p>
@@ -793,9 +814,9 @@ export default function WorkspaceProjectsPage() {
                 <input
                   type="text"
                   value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  onChange={(e) => setDeleteConfirmText(e. target.value)}
                   placeholder="Enter workspace name"
-                  className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus: ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all font-medium text-gray-900 placeholder: text-gray-400"
+                  className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus:   ring-2 focus: ring-red-500/20 focus: border-red-500 outline-none transition-all font-medium text-gray-900 placeholder:  text-gray-400"
                   autoFocus
                 />
               </div>
@@ -805,14 +826,14 @@ export default function WorkspaceProjectsPage() {
             <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 shrink-0 rounded-b-2xl">
               <button
                 onClick={closeDeleteConfirm}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover: border-gray-300 rounded-xl font-medium transition-all shadow-sm"
+                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:  border-gray-300 rounded-xl font-medium transition-all shadow-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteWorkspace}
                 disabled={deleteConfirmText !== workspace?.name || isDeleting}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover: shadow-lg font-medium"
+                className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:   shadow-lg font-medium"
               >
                 {isDeleting ? (
                   <>

@@ -32,7 +32,6 @@ export default function WorkspaceList() {
       <div className="flex items-center justify-between px-3 text-xs font-semibold text-gray-500 uppercase">
         <span>Workspaces</span>
         <button className="hover:bg-gray-200 p-0.5 rounded transition-colors">
-          <Plus className="w-4 h-4" />
         </button>
       </div>
 

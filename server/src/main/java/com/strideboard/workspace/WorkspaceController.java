@@ -398,6 +398,54 @@ public class WorkspaceController {
                 return ResponseEntity.noContent().build(); // 204 No Content
         }
 
+        @PostMapping("/{workspaceId}/rename")
+        @Transactional
+        public ResponseEntity<?> updateWorkspaceName(
+                        @PathVariable UUID workspaceId,
+                        @RequestBody Map<String, String> request,
+                        Authentication auth) {
+
+                // Find the current user
+                User user = userRepository.findByEmail(auth.getName())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                // Find the user's membership in this workspace
+                Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+                                .orElse(null);
+
+                // Security Check: User must be a member
+                if (membership == null) {
+                        return ResponseEntity.status(403)
+                                        .body(Map.of("message", "You are not a member of this workspace"));
+                }
+
+                // Security Check: Only ADMIN can update workspace name
+                if (!"ADMIN".equalsIgnoreCase(membership.getRole())) {
+                        return ResponseEntity.status(403)
+                                        .body(Map.of("message", "Only admins can update the workspace name"));
+                }
+
+                // Validate the new name
+                String newName = request.get("name");
+                if (newName == null || newName.trim().isEmpty()) {
+                        return ResponseEntity.badRequest()
+                                        .body(Map.of("message", "Workspace name cannot be empty"));
+                }
+
+                // Find and update the workspace
+                Workspace workspace = workspaceRepository.findById(workspaceId)
+                                .orElse(null);
+
+                if (workspace == null) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                workspace.setName(newName.trim());
+                Workspace updatedWorkspace = workspaceRepository.save(workspace);
+
+                return ResponseEntity.ok(updatedWorkspace);
+        }
+
         @PostMapping("/{workspaceId}/members")
         @Transactional
         public ResponseEntity<?> addMembersToWorkspace(

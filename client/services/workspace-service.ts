@@ -238,4 +238,36 @@ export const workspaceService = {
       throw new Error(result.message || "Failed to add members");
     }
   },
+
+  async updateWorkspaceName(workspaceId: string, name: string): Promise<Workspace> {
+    const token = authService.getToken();
+
+    const response = await fetch(`${API_BASE_URL}/${workspaceId}/rename`, {
+      method: "POST",  // Using POST instead
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Handle different error cases
+      if (response.status === 403) {
+        throw new Error(data.message || "You don't have permission to update this workspace");
+      }
+      if (response.status === 404) {
+        throw new Error("Workspace not found");
+      }
+      if (response.status === 400) {
+        throw new Error(data.message || "Invalid workspace name");
+      }
+      throw new Error(data.message || "Failed to update workspace name");
+    }
+
+    return data;
+  }
+
 };
