@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Folder, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Workspace } from "@/types/types";
@@ -10,12 +10,22 @@ export default function WorkspaceList() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchWorkspaces = useCallback(() => {
+    setLoading(true);
     workspaceService.getMyWorkspaces()
       .then(setWorkspaces)
       .catch((err) => console.error("Error:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchWorkspaces();
+
+    const handleRefresh = () => fetchWorkspaces();
+    window.addEventListener("workspace-updated", handleRefresh);
+
+    return () => window.removeEventListener("workspace-updated", handleRefresh);
+  }, [fetchWorkspaces]);
 
   return (
     <div className="space-y-2">
@@ -25,7 +35,7 @@ export default function WorkspaceList() {
           <Plus className="w-4 h-4" />
         </button>
       </div>
-      
+
       <div className="space-y-1">
         {loading ? (
           <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400">

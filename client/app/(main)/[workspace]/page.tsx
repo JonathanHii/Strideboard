@@ -250,6 +250,7 @@ export default function WorkspaceProjectsPage() {
       // Close modals and redirect to workspaces list
       setIsDeleteConfirmOpen(false);
       setIsSettingsOpen(false);
+      window.dispatchEvent(new Event("workspace-updated"));
       router.push("/dashboard");
     } catch (error) {
       console.error("Failed to delete workspace", error);

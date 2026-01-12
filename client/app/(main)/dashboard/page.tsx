@@ -92,6 +92,7 @@ export default function WorkspacesPage() {
       });
 
       await loadWorkspaces();
+      window.dispatchEvent(new Event("workspace-updated"));
       closeModal();
     } catch (error) {
       console.error("Failed to create workspace", error);
