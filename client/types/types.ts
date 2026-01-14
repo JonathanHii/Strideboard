@@ -45,6 +45,15 @@ export interface Project {
   workspaceId?: string;
 }
 
+export interface CreateWorkItemRequest {
+  title: string;
+  description?: string;
+  status?: WorkItemStatus;
+  priority?: WorkItemPriority;
+  type?: WorkItemType;
+  assigneeId?: string; 
+}
+
 export type WorkItemStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'DONE';
 export type WorkItemPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type WorkItemType = 'TASK' | 'BUG' | 'EPIC';

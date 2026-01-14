@@ -1,5 +1,5 @@
 import { authService } from "./authService";
-import { WorkItem } from "@/types/types";
+import { CreateWorkItemRequest, WorkItem } from "@/types/types";
 
 const API_BASE_URL = "http://localhost:8080/api/projects";
 
@@ -88,5 +88,30 @@ export const projectService = {
             const data = await response.json().catch(() => ({}));
             throw new Error(data.message || "Failed to delete project");
         }
+    },
+
+    async createWorkItem(
+        workspaceId: string,
+        projectId: string,
+        payload: CreateWorkItemRequest
+    ): Promise<WorkItem> {
+        const token = authService.getToken();
+
+        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/work-items`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to create work item");
+        }
+
+        return data;
     },
 };
