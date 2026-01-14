@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Logo() {
   return (
-    <Link href="/dashboard" className="flex items-center gap-2 px-2">
+    <Link href="/workspaces" className="flex items-center gap-2 px-2">
       <div className="rounded-md overflow-hidden">
         <Image 
           src="/favicon.ico" 

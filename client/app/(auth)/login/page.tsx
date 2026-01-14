@@ -17,7 +17,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await authService.login(email, password);
-      router.push("/dashboard");
+      router.push("/workspaces");
     } catch (err) {
       alert("Invalid credentials!");
     } finally {

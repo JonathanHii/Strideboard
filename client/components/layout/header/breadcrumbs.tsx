@@ -19,7 +19,7 @@ export default function Breadcrumbs() {
   const projectId = params?.project as string;
 
   const loadBreadcrumbs = useCallback(async () => {
-    if (pathname === "/dashboard" || !workspaceId) {
+    if (pathname === "/workspaces" || !workspaceId) {
       setWorkspace(null);
       setProject(null);
       return;
@@ -61,15 +61,15 @@ export default function Breadcrumbs() {
     };
   }, [loadBreadcrumbs]);
 
-  if (pathname === "/dashboard") return null;
+  if (pathname === "/workspaces") return null;
 
   return (
     <nav className="flex items-center text-sm font-medium h-6">
       <Link
-        href="/dashboard"
+        href="/workspaces"
         className="text-gray-500 hover:text-gray-900 transition-colors"
       >
-        Dashboard
+        Workspaces
       </Link>
 
       {workspaceId && (

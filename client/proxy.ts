@@ -21,9 +21,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If the user HAS a token and tries to access the login page -> Redirect to dashboard
+  // If the user HAS a token and tries to access the login page -> Redirect to 
   if (token && pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/workspaces', request.url));
   }
 
   // Allow the request to proceed for all other cases
