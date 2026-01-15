@@ -3,9 +3,10 @@ import { WorkItem, WorkItemPriority } from "@/types/types";
 interface WorkItemCardProps {
   item: WorkItem;
   searchQuery: string;
+  onClick?: () => void;
 }
 
-export default function WorkItemCard({ item, searchQuery }: WorkItemCardProps) {
+export default function WorkItemCard({ item, searchQuery, onClick }: WorkItemCardProps) {
   const PRIORITY_CONFIG: Record<WorkItemPriority, string> = {
     URGENT: "bg-red-50 text-red-700 border-red-200",
     HIGH: "bg-orange-50 text-orange-700 border-orange-200",
@@ -41,7 +42,10 @@ export default function WorkItemCard({ item, searchQuery }: WorkItemCardProps) {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-sm cursor-pointer group transition-all duration-200">
+    <div
+      onClick={onClick}
+      className="bg-white border border-slate-200 rounded-xl p-4 hover: border-indigo-300 hover:shadow-sm cursor-pointer group transition-all duration-200"
+    >
       <div className="flex justify-between items-start mb-3">
         <span
           className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${priorityStyle}`}
@@ -60,7 +64,7 @@ export default function WorkItemCard({ item, searchQuery }: WorkItemCardProps) {
       <p className="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed">
         {item.description
           ? highlightText(item.description)
-          : "No description provided."}
+          : "No description provided. "}
       </p>
 
       <div className="flex items-center justify-between border-t border-slate-50 pt-3">

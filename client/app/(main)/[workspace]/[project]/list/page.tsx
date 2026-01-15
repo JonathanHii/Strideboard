@@ -6,6 +6,7 @@ import { projectService } from "@/services/project-service";
 import { WorkItem, WorkItemStatus, WorkItemPriority } from "@/types/types";
 import { Search, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import CreateWorkItemModal from "@/components/board/CreateWorkItemModal";
+import WorkItemDetailModal from "@/components/board/WorkItemDetailModal";
 
 type SortField = "title" | "status" | "priority" | "createdAt" | "assignee";
 type SortDirection = "asc" | "desc";
@@ -33,14 +34,13 @@ export default function ListPage() {
     const [sortField, setSortField] = useState<SortField>("createdAt");
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
-    // Added state for Modal
+    // State for Modals
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<WorkItem | null>(null);
 
-    // Lifted params extraction to top level for access by Modal
     const workspaceId = params.workspace as string;
     const projectId = params.project as string;
 
-    // Lifted fetch logic to reusable function for "Refresh on Create"
     const fetchListData = async () => {
         try {
             if (workspaceId && projectId) {
@@ -61,6 +61,31 @@ export default function ListPage() {
     const handleCreateSuccess = async () => {
         await fetchListData();
     };
+
+    // --- Detail Modal Handlers ---
+    const handleItemClick = (item: WorkItem) => {
+        setSelectedItem(item);
+    };
+
+    const handleCloseDetail = () => {
+        setSelectedItem(null);
+    };
+
+    const handleItemUpdate = async (updatedItem: WorkItem) => {
+        // Update local state immediately
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === updatedItem.id ? updatedItem : item
+            )
+        );
+    };
+
+    const handleItemDelete = async (itemId: string) => {
+        // Remove from local state
+        setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+        setSelectedItem(null);
+    };
+    // -----------------------------
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -198,7 +223,11 @@ export default function ListPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {sortedAndFilteredItems.map((item) => (
-                            <WorkItemRow key={item.id} item={item} />
+                            <WorkItemRow
+                                key={item.id}
+                                item={item}
+                                onClick={() => handleItemClick(item)}
+                            />
                         ))}
                         {sortedAndFilteredItems.length === 0 && (
                             <tr>
@@ -216,7 +245,7 @@ export default function ListPage() {
                 Showing {sortedAndFilteredItems.length} of {items.length} items
             </div>
 
-            {/* --- Modal --- */}
+            {/* --- Modals --- */}
             <CreateWorkItemModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
@@ -224,11 +253,21 @@ export default function ListPage() {
                 workspaceId={workspaceId}
                 projectId={projectId}
             />
+
+            <WorkItemDetailModal
+                item={selectedItem}
+                isOpen={!!selectedItem}
+                onClose={handleCloseDetail}
+                onUpdate={handleItemUpdate}
+                onDelete={handleItemDelete}
+                workspaceId={workspaceId}
+                projectId={projectId}
+            />
         </div>
     );
 }
 
-function WorkItemRow({ item }: { item: WorkItem }) {
+function WorkItemRow({ item, onClick }: { item: WorkItem; onClick: () => void }) {
     const STATUS_CONFIG: Record<WorkItemStatus, string> = {
         BACKLOG: "bg-slate-100 text-slate-600 border-slate-200",
         TODO: "bg-amber-50 text-amber-700 border-amber-200",
@@ -247,7 +286,10 @@ function WorkItemRow({ item }: { item: WorkItem }) {
     const priorityStyle = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.LOW;
 
     return (
-        <tr className="hover:bg-slate-50 cursor-pointer group transition-colors">
+        <tr
+            onClick={onClick}
+            className="hover:bg-slate-50 cursor-pointer group transition-colors"
+        >
             <td className="px-4 py-3">
                 <div className="flex flex-col gap-1">
                     <span className="text-sm font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">

@@ -9,6 +9,7 @@ import { Search, Plus } from "lucide-react";
 // Imported Components & Constants
 import WorkItemCard from "@/components/board/WorkItemCard";
 import CreateWorkItemModal from "@/components/board/CreateWorkItemModal";
+import WorkItemDetailModal from "@/components/board/WorkItemDetailModal";
 import { COLUMNS } from "@/components/board/contants";
 
 export default function BoardPage() {
@@ -18,6 +19,7 @@ export default function BoardPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<WorkItem | null>(null);
 
     const workspaceId = params.workspace as string;
     const projectId = params.project as string;
@@ -93,13 +95,37 @@ export default function BoardPage() {
         await fetchBoardData();
     };
 
+    const handleItemClick = (item: WorkItem) => {
+        setSelectedItem(item);
+    };
+
+    const handleCloseDetail = () => {
+        setSelectedItem(null);
+    };
+
+    const handleItemUpdate = async (updatedItem: WorkItem) => {
+        // Update the item in local state for immediate UI feedback
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === updatedItem.id ? updatedItem : item
+            )
+        );
+    };
+
+    const handleItemDelete = async (itemId: string) => {
+        // Remove from local state
+        setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+        // Close the modal
+        setSelectedItem(null);
+    };
+
     if (isLoading)
         return (
             <div className="p-10 animate-pulse text-slate-400">Loading board...</div>
         );
     if (error)
         return (
-            <div className="p-10 text-red-500 font-medium">Error: {error}</div>
+            <div className="p-10 text-red-500 font-medium">Error:  {error}</div>
         );
 
     return (
@@ -142,7 +168,7 @@ export default function BoardPage() {
             </div>
 
             {/* --- Kanban Columns (Scrollable Area) --- */}
-            <div className="flex flex-1 gap-6 overflow-x-auto overflow-y-auto min-h-0 pb-4 [scrollbar-gutter:stable]">
+            <div className="flex flex-1 gap-6 overflow-x-auto overflow-y-auto min-h-0 pb-4 [scrollbar-gutter: stable]">
                 {COLUMNS.map((status) => (
                     <div
                         key={status}
@@ -167,6 +193,7 @@ export default function BoardPage() {
                                     key={item.id}
                                     item={item}
                                     searchQuery={searchQuery}
+                                    onClick={() => handleItemClick(item)}
                                 />
                             ))}
                             {groupedItems[status].length === 0 && (
@@ -184,6 +211,17 @@ export default function BoardPage() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSuccess={handleCreateSuccess}
+                workspaceId={workspaceId}
+                projectId={projectId}
+            />
+
+            {/* Work Item Detail Modal */}
+            <WorkItemDetailModal
+                item={selectedItem}
+                isOpen={!!selectedItem}
+                onClose={handleCloseDetail}
+                onUpdate={handleItemUpdate}
+                onDelete={handleItemDelete}
                 workspaceId={workspaceId}
                 projectId={projectId}
             />
