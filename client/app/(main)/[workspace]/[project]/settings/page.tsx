@@ -17,7 +17,13 @@ import {
 export default function SettingsPage() {
     const params = useParams();
     const router = useRouter();
+
+    // Data states
     const [project, setProject] = useState<Project | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isCreator, setIsCreator] = useState<boolean>(false);
+
+    // UI states
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -40,25 +46,49 @@ export default function SettingsPage() {
     const projectId = params.project as string;
 
     useEffect(() => {
-        const fetchProjectData = async () => {
+        const fetchSettingsData = async () => {
             try {
                 if (workspaceId && projectId) {
-                    const data = await workspaceService.getProjectById(workspaceId, projectId);
-                    setProject(data);
-                    setProjectName(data.name || "");
-                    setProjectDescription(data.description || "");
+                    // Fetch all required data in parallel
+                    const [projectData, memberData, creatorStatus] = await Promise.all([
+                        workspaceService.getProjectById(workspaceId, projectId),
+                        workspaceService.getCurrentUserInWorkspace(workspaceId),
+                        projectService.isProjectCreator(workspaceId, projectId)
+                    ]);
+
+                    // Set Project Data
+                    setProject(projectData);
+                    setProjectName(projectData.name || "");
+                    setProjectDescription(projectData.description || "");
+
+                    // Set Permissions Data
+                    setUserRole(memberData.role); // Assuming role returns "ADMIN", "MEMBER", or "VIEWER"
+                    setIsCreator(creatorStatus);
                 }
             } catch (err: any) {
+                console.error(err);
                 setError(err.message || "Failed to load project settings");
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchProjectData();
+
+        fetchSettingsData();
     }, [workspaceId, projectId]);
+
+    // --- Permission Logic ---
+    const isAdmin = userRole === "ADMIN";
+
+    // Admin OR Creator can edit name and delete
+    const canEditName = isAdmin || isCreator;
+    const canDelete = isAdmin || isCreator;
+
+    // Admin OR Creator OR Member can edit description (Viewers cannot)
+    const canEditDescription = isAdmin || isCreator || userRole === "MEMBER";
 
     // --- Save Name Handler ---
     const handleSaveName = async () => {
+        if (!canEditName) return;
         if (!projectName.trim() || projectName === project?.name) return;
 
         setIsSavingName(true);
@@ -81,6 +111,7 @@ export default function SettingsPage() {
 
     // --- Save Description Handler ---
     const handleSaveDescription = async () => {
+        if (!canEditDescription) return;
         if (projectDescription === (project?.description || "")) return;
 
         setIsSavingDescription(true);
@@ -102,6 +133,7 @@ export default function SettingsPage() {
 
     // --- Delete Project Handler ---
     const handleDeleteProject = async () => {
+        if (!canDelete) return;
         if (deleteConfirmText !== project?.name) return;
 
         setIsDeleting(true);
@@ -159,7 +191,6 @@ export default function SettingsPage() {
 
                         {/* Project Name */}
                         <div>
-                            {/* Changed: Removed font-medium to make label regular weight */}
                             <label htmlFor="projectName" className="block text-sm text-slate-700 mb-1.5">
                                 Project Name
                             </label>
@@ -170,34 +201,36 @@ export default function SettingsPage() {
                                     value={projectName}
                                     onChange={(e) => setProjectName(e.target.value)}
                                     placeholder="Enter project name"
-                                    /* Changed: Added text-slate-700 to match theme instead of default black */
-                                    className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    disabled={!canEditName}
+                                    className={`flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${!canEditName ? "bg-slate-50 text-slate-500 cursor-not-allowed" : ""}`}
                                 />
-                                <button
-                                    onClick={handleSaveName}
-                                    disabled={!hasNameChanged || isSavingName}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm min-w-[100px] justify-center ${nameSuccess
-                                        ? "bg-green-500 hover:bg-green-600 text-white"
-                                        : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white"
-                                        }`}
-                                >
-                                    {isSavingName ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : nameSuccess ? (
-                                        <>
-                                            <Check className="h-4 w-4" />
-                                            Saved!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save
-                                        </>
-                                    )}
-                                </button>
+                                {canEditName && (
+                                    <button
+                                        onClick={handleSaveName}
+                                        disabled={!hasNameChanged || isSavingName}
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm min-w-[100px] justify-center ${nameSuccess
+                                            ? "bg-green-500 hover:bg-green-600 text-white"
+                                            : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white"
+                                            }`}
+                                    >
+                                        {isSavingName ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : nameSuccess ? (
+                                            <>
+                                                <Check className="h-4 w-4" />
+                                                Saved!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4" />
+                                                Save
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -212,73 +245,78 @@ export default function SettingsPage() {
                                 onChange={(e) => setProjectDescription(e.target.value)}
                                 placeholder="Describe your project..."
                                 rows={3}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                                disabled={!canEditDescription}
+                                className={`w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none ${!canEditDescription ? "bg-slate-50 text-slate-500 cursor-not-allowed" : ""}`}
                             />
-                            <div className="pt-3">
-                                <button
-                                    onClick={handleSaveDescription}
-                                    disabled={!hasDescriptionChanged || isSavingDescription}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm min-w-[140px] justify-center ${descriptionSuccess
-                                        ? "bg-green-500 hover:bg-green-600 text-white"
-                                        : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white"
-                                        }`}
-                                >
-                                    {isSavingDescription ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : descriptionSuccess ? (
-                                        <>
-                                            <Check className="h-4 w-4" />
-                                            Saved!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save Description
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                            {canEditDescription && (
+                                <div className="pt-3">
+                                    <button
+                                        onClick={handleSaveDescription}
+                                        disabled={!hasDescriptionChanged || isSavingDescription}
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm min-w-[140px] justify-center ${descriptionSuccess
+                                            ? "bg-green-500 hover:bg-green-600 text-white"
+                                            : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white"
+                                            }`}
+                                    >
+                                        {isSavingDescription ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : descriptionSuccess ? (
+                                            <>
+                                                <Check className="h-4 w-4" />
+                                                Saved!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4" />
+                                                Save Description
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
 
-                {/* --- Danger Zone --- */}
-                <section className="bg-white border border-red-200 rounded-xl overflow-hidden">
-                    <div className="px-6 py-4 border-b border-red-100 bg-red-50">
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-red-500" />
-                            <h2 className="text-sm font-bold text-red-700 uppercase tracking-wide">
-                                Danger Zone
-                            </h2>
-                        </div>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        {/* Delete Project */}
-                        <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50/30">
-                            <div>
-                                <h3 className="text-sm font-semibold text-slate-700">Delete Project</h3>
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                    Permanently delete this project and all its data.  This cannot be undone.
-                                </p>
+                {/* --- Danger Zone (Only for Admins or Creators) --- */}
+                {canDelete && (
+                    <section className="bg-white border border-red-200 rounded-xl overflow-hidden">
+                        <div className="px-6 py-4 border-b border-red-100 bg-red-50">
+                            <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-red-500" />
+                                <h2 className="text-sm font-bold text-red-700 uppercase tracking-wide">
+                                    Danger Zone
+                                </h2>
                             </div>
-                            <button
-                                onClick={openDeleteModal}
-                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                Delete
-                            </button>
                         </div>
-                    </div>
-                </section>
+                        <div className="p-6 space-y-4">
+                            {/* Delete Project */}
+                            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50/30">
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-700">Delete Project</h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        Permanently delete this project and all its data.  This cannot be undone.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={openDeleteModal}
+                                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                )}
 
             </div>
 
             {/* --- Delete Confirmation Modal --- */}
-            {isDeleteModalOpen && (
+            {isDeleteModalOpen && canDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm transition-all duration-300">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col transform transition-all animate-in fade-in zoom-in-95 duration-200">
 

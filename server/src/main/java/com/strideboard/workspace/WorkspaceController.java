@@ -293,7 +293,8 @@ public class WorkspaceController {
                 Project project = Project.builder()
                                 .name(request.getName())
                                 .description(request.getDescription())
-                                .workspace(workspace) // Crucial for the @ManyToOne relationship
+                                .workspace(workspace) //  @ManyToOne relationship
+                                .creator(user)
                                 .build();
 
                 // Save and Return

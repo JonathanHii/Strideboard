@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.strideboard.data.user.User;
 import com.strideboard.data.workitem.WorkItem;
 import com.strideboard.data.workspace.Workspace;
 
@@ -54,6 +55,11 @@ public class Project {
     @JoinColumn(name = "workspace_id", nullable = false)
     @JsonIgnore
     private Workspace workspace;
+
+    @ManyToOne
+    @JoinColumn(name = "creator_id") // nullable = false if every project MUST have a creator
+    @JsonIgnore
+    private User creator;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore // Important to prevent infinite recursion in JSON

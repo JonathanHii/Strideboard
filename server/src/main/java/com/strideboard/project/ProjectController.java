@@ -74,7 +74,7 @@ public class ProjectController {
     }
 
     /**
-     * Update project name - Admin only
+     * Update project name - Admin and creator only
      */
     @PatchMapping("/{workspaceId}/{projectId}/name")
     public ResponseEntity<Project> updateProjectName(
@@ -86,18 +86,28 @@ public class ProjectController {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check if user is ADMIN
-        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-                .orElse(null);
-        if (membership == null || !"ADMIN".equals(membership.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-
+        // 1. Fetch Project first (needed to check creator)
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         if (!project.getWorkspace().getId().equals(workspaceId)) {
             return ResponseEntity.status(400).build();
+        }
+
+        // 2. Get Membership to check if user is in workspace and check role
+        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+                .orElse(null);
+
+        if (membership == null) {
+            return ResponseEntity.status(403).build(); // User not in workspace
+        }
+
+        // 3. Permission Check: Is Creator OR Is Admin?
+        boolean isCreator = project.getCreator() != null && project.getCreator().getId().equals(user.getId());
+        boolean isAdmin = "ADMIN".equals(membership.getRole());
+
+        if (!isCreator && !isAdmin) {
+            return ResponseEntity.status(403).build();
         }
 
         if (request.name() == null || request.name().isBlank()) {
@@ -109,7 +119,7 @@ public class ProjectController {
     }
 
     /**
-     * Update project description - Admin only
+     * Update project description - Creator or Admin
      */
     @PatchMapping("/{workspaceId}/{projectId}/description")
     public ResponseEntity<Project> updateProjectDescription(
@@ -121,13 +131,6 @@ public class ProjectController {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check if user is ADMIN
-        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-                .orElse(null);
-        if (membership == null || !"ADMIN".equals(membership.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
@@ -135,12 +138,27 @@ public class ProjectController {
             return ResponseEntity.status(400).build();
         }
 
+        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+                .orElse(null);
+
+        if (membership == null) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Permission Check: Is Creator OR Is Admin?
+        boolean isCreator = project.getCreator() != null && project.getCreator().getId().equals(user.getId());
+        boolean isAdmin = "ADMIN".equals(membership.getRole());
+
+        if (!isCreator && !isAdmin) {
+            return ResponseEntity.status(403).build();
+        }
+
         project.setDescription(request.description());
         return ResponseEntity.ok(projectRepository.save(project));
     }
 
     /**
-     * Delete project - Admin only
+     * Delete project - Creator or Admin
      */
     @DeleteMapping("/{workspaceId}/{projectId}")
     public ResponseEntity<Void> deleteProject(
@@ -151,18 +169,26 @@ public class ProjectController {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check if user is ADMIN
-        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-                .orElse(null);
-        if (membership == null || !"ADMIN".equals(membership.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         if (!project.getWorkspace().getId().equals(workspaceId)) {
             return ResponseEntity.status(400).build();
+        }
+
+        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+                .orElse(null);
+
+        if (membership == null) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Permission Check: Is Creator OR Is Admin?
+        boolean isCreator = project.getCreator() != null && project.getCreator().getId().equals(user.getId());
+        boolean isAdmin = "ADMIN".equals(membership.getRole());
+
+        if (!isCreator && !isAdmin) {
+            return ResponseEntity.status(403).build();
         }
 
         projectRepository.delete(project);
@@ -229,5 +255,31 @@ public class ProjectController {
                 .build();
 
         return ResponseEntity.ok(workItemRepository.save(workItem));
+    }
+
+    @GetMapping("/{workspaceId}/{projectId}/is-creator")
+    public ResponseEntity<Boolean> isProjectCreator(
+            @PathVariable UUID workspaceId,
+            @PathVariable UUID projectId,
+            Authentication auth) {
+
+        User currentUser = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!membershipRepository.existsByUserIdAndWorkspaceId(currentUser.getId(), workspaceId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (!project.getWorkspace().getId().equals(workspaceId)) {
+            return ResponseEntity.status(400).build();
+        }
+
+        boolean isCreator = project.getCreator() != null
+                && project.getCreator().getId().equals(currentUser.getId());
+
+        return ResponseEntity.ok(isCreator);
     }
 }

@@ -114,4 +114,24 @@ export const projectService = {
 
         return data;
     },
+
+    async isProjectCreator(workspaceId: string, projectId: string): Promise<boolean> {
+        const token = authService.getToken();
+
+        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/is-creator`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to check creator status");
+        }
+
+        return data; // Returns true or false
+    },
 };
