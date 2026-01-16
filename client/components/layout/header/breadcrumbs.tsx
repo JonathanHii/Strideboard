@@ -30,7 +30,7 @@ export default function Breadcrumbs() {
 
       // Define our fetch tasks
       const fetchTasks: Promise<any>[] = [
-        workspaceService. getWorkspaceById(workspaceId)
+        workspaceService.getWorkspaceById(workspaceId)
       ];
 
       // Only fetch project if ID exists in URL
@@ -62,6 +62,7 @@ export default function Breadcrumbs() {
   }, [loadBreadcrumbs]);
 
   if (pathname === "/workspaces") return null;
+  if (pathname === "/profile") return null;
 
   return (
     <nav className="flex items-center text-sm font-medium h-6">
@@ -77,9 +78,8 @@ export default function Breadcrumbs() {
           <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
           <Link
             href={`/${workspaceId}`}
-            className={`transition-colors hover:text-indigo-600 ${
-              !projectId ?  "text-gray-900 font-semibold" : "text-gray-500"
-            }`}
+            className={`transition-colors hover:text-indigo-600 ${!projectId ? "text-gray-900 font-semibold" : "text-gray-500"
+              }`}
           >
             {workspace ? workspace.name : "... "}
           </Link>
