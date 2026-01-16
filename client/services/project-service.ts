@@ -1,4 +1,4 @@
-import { authService } from "./authService";
+import { authService } from "./auth-service";
 import { CreateWorkItemRequest, UpdateWorkItemRequest, WorkItem } from "@/types/types";
 
 const API_BASE_URL = "http://localhost:8080/api/projects";

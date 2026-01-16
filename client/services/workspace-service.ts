@@ -1,5 +1,5 @@
 import { Workspace, CreateWorkspaceRequest, Project, UserSummary, CreateProjectRequest, WorkspaceMember } from "@/types/types";
-import { authService } from "./authService";
+import { authService } from "./auth-service";
 
 const API_BASE_URL = "http://localhost:8080/api/workspaces";
 

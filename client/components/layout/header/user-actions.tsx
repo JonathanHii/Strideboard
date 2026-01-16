@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, User, LogOut } from "lucide-react";
+import { Mail, User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/authService";
+import { authService } from "@/services/auth-service";
 
 export default function UserActions() {
   const router = useRouter();
@@ -23,9 +23,12 @@ export default function UserActions() {
 
   return (
     <div className="flex items-center gap-5">
-      <button className="text-gray-500 hover:text-gray-900 transition-colors p-1.5 relative">
-        <Bell className="w-6 h-6" />
-        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+      {/* Messages Button */}
+      <button
+        className="text-gray-500 hover:text-gray-900 transition-colors p-1.5"
+        aria-label="Messages"
+      >
+        <Mail className="w-6 h-6" />
       </button>
 
       <DropdownMenu>
