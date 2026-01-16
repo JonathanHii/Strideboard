@@ -86,3 +86,15 @@ export interface WorkItem {
 
   projectId: string;
 }
+
+export interface InboxItem {
+  id: number;
+  type: "invite" | "update";
+  workspaceName: string;
+  projectName: string | null;
+  title: string;
+  subtitle: string;
+  time: string;
+  isUnread: boolean;
+  referenceId: string;
+}
