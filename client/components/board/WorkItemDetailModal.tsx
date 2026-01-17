@@ -10,7 +10,7 @@ import {
     WorkItemType,
     WorkspaceMember,
     UpdateWorkItemRequest,
-    WorkspaceRole, // Ensure this is imported if it's exported, otherwise see the cast below
+    WorkspaceRole,
 } from "@/types/types";
 import {
     X,
@@ -147,8 +147,6 @@ export default function WorkItemDetailModal({
 
         // Fallback: Use item's original assignee data if IDs match
         if (item?.assignee && item.assignee.id === assigneeId) {
-            // FIX: Force cast the object to unknown first, then WorkspaceMember
-            // This bypasses the strict comparison between "MEMBER" string and the WorkspaceRole type
             return {
                 id: item.assignee.id,
                 name: item.assignee.fullName,
@@ -159,6 +157,31 @@ export default function WorkItemDetailModal({
         }
         return null;
     }, [members, assigneeId, item]);
+
+    // Check if any changes have been made to the form
+    const hasChanges = useMemo(() => {
+        if (!item) return false;
+
+        const currentTitle = title.trim();
+        const originalTitle = item.title;
+
+        // Normalize description (handle null vs empty string)
+        const currentDesc = description.trim() || "";
+        const originalDesc = (item.description || "").trim();
+
+        // Normalize assignee (handle undefined vs null)
+        const currentAssignee = assigneeId || null;
+        const originalAssignee = item.assignee?.id || null;
+
+        return (
+            currentTitle !== originalTitle ||
+            currentDesc !== originalDesc ||
+            status !== item.status ||
+            priority !== item.priority ||
+            type !== item.type ||
+            currentAssignee !== originalAssignee
+        );
+    }, [item, title, description, status, priority, type, assigneeId]);
 
     const handleSelectAssignee = (memberId: string) => {
         setAssigneeId(memberId);
@@ -353,7 +376,7 @@ export default function WorkItemDetailModal({
 
                         {currentAssignee ? (
                             /* Case 1: Assigned */
-                            <div className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-100 rounded-xl group hover:border-indigo-200 transition-colors">
+                            <div className="flex items-center justify-between p-3 bg-indigo-5 border border-indigo-100 rounded-xl group hover:border-indigo-200 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-sm">
                                         {currentAssignee.name?.charAt(0) || "?"}
@@ -538,7 +561,7 @@ export default function WorkItemDetailModal({
                     </button>
                     <button
                         onClick={handleSave}
-                        disabled={!title.trim() || isSaving}
+                        disabled={!title.trim() || isSaving || !hasChanges}
                         className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
                     >
                         {isSaving ? (
