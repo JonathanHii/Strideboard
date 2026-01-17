@@ -58,5 +58,17 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
-    
+    // Check if notifications exist
+    @GetMapping("/has-unread")
+    public ResponseEntity<Boolean> hasNotifications(Authentication authentication) {
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        boolean hasNotifications = !notificationService.getUserNotifications(user.getId()).isEmpty();
+
+        return ResponseEntity.ok(hasNotifications);
+    }
+
 }

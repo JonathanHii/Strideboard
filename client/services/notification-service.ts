@@ -89,4 +89,28 @@ export const notificationService = {
             throw new Error(data.message || "Failed to reject invite");
         }
     },
+
+    /**
+     * Checks if the user has any unread notifications.
+     * Returns true if there are notifications, false otherwise.
+     */
+    async hasUnreadNotifications(): Promise<boolean> {
+        const token = authService.getToken();
+
+        const response = await fetch(`${API_BASE_URL}/has-unread`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to check notification status");
+        }
+
+        return data;
+    },
 };

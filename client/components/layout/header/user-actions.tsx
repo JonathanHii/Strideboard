@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { Mail, User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
@@ -12,11 +12,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth-service";
+import { notificationService } from "@/services/notification-service"; // Import your service
 import NotificationsModal from "@/components/notifications/NotificationsModal";
 
 export default function UserActions() {
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const checkNotifications = async () => {
+      try {
+        const status = await notificationService.hasUnreadNotifications();
+        setHasUnread(status);
+      } catch (error) {
+        console.error("Failed to check notifications", error);
+      }
+    };
+    checkNotifications();
+  }, []);
 
   const handleLogout = () => {
     authService.logout();
@@ -24,16 +38,26 @@ export default function UserActions() {
     router.refresh();
   };
 
+  const handleOpenNotifications = () => {
+    setShowNotifications(true);
+    setHasUnread(false);
+  };
+
   return (
     <>
       <div className="flex items-center gap-5">
-        {/* Messages Button*/}
+        {/* Messages Button */}
         <button
-          onClick={() => setShowNotifications(true)}
-          className="text-gray-500 hover:text-gray-900 transition-colors p-1.5 outline-none"
+          onClick={handleOpenNotifications}
+          className="relative text-gray-500 hover:text-gray-900 transition-colors p-1.5 outline-none"
           aria-label="Messages"
         >
           <Mail className="w-6 h-6" />
+
+          {/* The Red Dot */}
+          {hasUnread && (
+            <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-600 border-2 border-white"></span>
+          )}
         </button>
 
         <DropdownMenu>
