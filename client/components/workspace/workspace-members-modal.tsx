@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { X, Users, Loader2 } from "lucide-react";
 import { Workspace, WorkspaceMember } from "@/types/types";
 import { workspaceService } from "@/services/workspace-service";
+import { useRouter } from "next/navigation";
 
 interface WorkspaceMembersModalProps {
     isOpen: boolean;
@@ -19,6 +20,11 @@ export default function WorkspaceMembersModal({
     const [currentUser, setCurrentUser] = useState<WorkspaceMember | null>(null);
     const [members, setMembers] = useState<WorkspaceMember[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const router = useRouter();
+
+    // New state for the leave action (loader)
+    const [isLeaving, setIsLeaving] = useState(false);
 
     // Load Members
     const loadMemberData = useCallback(async () => {
@@ -44,7 +50,25 @@ export default function WorkspaceMembersModal({
         }
     }, [isOpen, loadMemberData]);
 
-    // Helper Utils (Same as Settings Modal)
+    const handleLeaveWorkspace = async () => {
+        if (!confirm("Are you sure you want to leave this workspace?")) return;
+
+        setIsLeaving(true);
+        try {
+            await workspaceService.leaveWorkspace(workspace.id);
+
+            onClose();
+            window.dispatchEvent(new Event("workspace-updated"));
+            router.push("/workspaces");
+        } catch (error) {
+            console.error("Failed to leave workspace", error);
+            alert(error instanceof Error ? error.message : "Failed to leave workspace.");
+        } finally {
+            setIsLeaving(false);
+        }
+    };
+
+    // Helper Utils
     const getInitials = (name: string, email: string) => {
         if (name && name.trim()) {
             const parts = name.trim().split(" ");
@@ -100,66 +124,96 @@ export default function WorkspaceMembersModal({
                             <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
                         </div>
                     ) : (
-                        <div className="space-y-3">
-                            {/* Current User Card */}
-                            {currentUser && (
-                                <div className="flex items-center justify-between p-3 border border-indigo-200 bg-indigo-50/50 rounded-xl">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(
-                                                currentUser.role
-                                            )}`}
-                                        >
-                                            You
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {currentUser.name || currentUser.email}
-                                                <span className="ml-2 text-xs text-indigo-600 font-normal">
-                                                    (You)
-                                                </span>
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                {currentUser.role}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                        <div className="space-y-6"> {/* Increased space-y to separate sections */}
 
-                            {/* Other Members List */}
-                            {members
-                                .filter((member) => currentUser && member.id !== currentUser.id)
-                                .map((member) => (
-                                    <div
-                                        key={member.id}
-                                        className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
-                                    >
+                            {/* Member List Section */}
+                            <div className="space-y-3">
+                                {/* Current User Card */}
+                                {currentUser && (
+                                    <div className="flex items-center justify-between p-3 border border-indigo-200 bg-indigo-50/50 rounded-xl">
                                         <div className="flex items-center gap-3">
                                             <div
                                                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(
-                                                    member.role
+                                                    currentUser.role
                                                 )}`}
                                             >
-                                                {getInitials(member.name, member.email)}
+                                                You
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-900">
-                                                    {member.name || member.email}
+                                                    {currentUser.name || currentUser.email}
+                                                    <span className="ml-2 text-xs text-indigo-600 font-normal">
+                                                        (You)
+                                                    </span>
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {member.role}
+                                                    {currentUser.role}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                )}
 
-                            {members.length <= 1 && (
-                                <div className="text-center py-6 text-gray-500 text-sm">
-                                    No other members in this workspace.
+                                {/* Other Members List */}
+                                {members
+                                    .filter((member) => currentUser && member.id !== currentUser.id)
+                                    .map((member) => (
+                                        <div
+                                            key={member.id}
+                                            className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(
+                                                        member.role
+                                                    )}`}
+                                                >
+                                                    {getInitials(member.name, member.email)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">
+                                                        {member.name || member.email}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">{member.role}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                {members.length <= 1 && (
+                                    <div className="text-center py-6 text-gray-500 text-sm">
+                                        No other members in this workspace.
+                                    </div>
+                                )}
+                            </div>
+
+                            <hr className="border-gray-100" />
+
+                            {/* Danger Zone - Leave Workspace */}
+                            <section>
+                                <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider mb-4">
+                                    Danger Zone
+                                </h3>
+                                <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex items-center justify-between">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-red-900">
+                                            Leave Workspace
+                                        </h4>
+                                        <p className="text-sm text-red-700 mt-1">
+                                            Revoke your access to this workspace.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleLeaveWorkspace}
+                                        disabled={isLeaving}
+                                        className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    >
+                                        {isLeaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        Leave Workspace
+                                    </button>
                                 </div>
-                            )}
+                            </section>
+
                         </div>
                     )}
                 </div>

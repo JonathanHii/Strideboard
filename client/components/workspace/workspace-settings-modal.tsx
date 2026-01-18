@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, X, Check, FolderOpen, Trash2, ChevronDown, Crown } from "lucide-react";
+import { Loader2, X, Check, FolderOpen, Trash2, ChevronDown, Crown} from "lucide-react";
 import { Workspace, WorkspaceMember } from "@/types/types";
 import { workspaceService } from "@/services/workspace-service";
 import AddPeopleModal from "./add-people-modal";
 import DeleteWorkspaceModal from "./delete-workspace-modal";
+import { useRouter } from "next/navigation";
 
 interface WorkspaceSettingsModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function WorkspaceSettingsModal({
   workspace,
   onWorkspaceUpdated,
 }: WorkspaceSettingsModalProps) {
+  const router = useRouter();
   const [settingsName, setSettingsName] = useState(workspace.name);
   const [isSavingName, setIsSavingName] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -27,11 +29,12 @@ export default function WorkspaceSettingsModal({
   // Member State
   const [currentUser, setCurrentUser] = useState<WorkspaceMember | null>(null);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
-  const [ownerId, setOwnerId] = useState<string | null>(null); // NEW: Track Owner ID
+  const [ownerId, setOwnerId] = useState<string | null>(null);
 
   // Loading States
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   // Sub-Modals State
   const [isAddPeopleOpen, setIsAddPeopleOpen] = useState(false);
@@ -44,7 +47,7 @@ export default function WorkspaceSettingsModal({
       const [currentUserData, membersData, ownerData] = await Promise.all([
         workspaceService.getCurrentUserInWorkspace(workspace.id),
         workspaceService.getWorkspaceMembers(workspace.id),
-        workspaceService.getWorkspaceOwner(workspace.id) // NEW: Fetch Owner
+        workspaceService.getWorkspaceOwner(workspace.id)
       ]);
       setCurrentUser(currentUserData);
       setMembers(membersData);
@@ -107,6 +110,24 @@ export default function WorkspaceSettingsModal({
       alert(error instanceof Error ? error.message : "Failed to update role.");
     } finally {
       setUpdatingRoleId(null);
+    }
+  };
+
+  const handleLeaveWorkspace = async () => {
+    if (!confirm("Are you sure you want to leave this workspace?")) return;
+
+    setIsLeaving(true);
+    try {
+      await workspaceService.leaveWorkspace(workspace.id);
+
+      onClose();
+      window.dispatchEvent(new Event("workspace-updated"));
+      router.push("/workspaces");
+    } catch (error) {
+      console.error("Failed to leave workspace", error);
+      alert(error instanceof Error ? error.message : "Failed to leave workspace.");
+    } finally {
+      setIsLeaving(false);
     }
   };
 
@@ -243,7 +264,7 @@ export default function WorkspaceSettingsModal({
 
                   // PERMISSION CHECK:
                   // 1. Must be at least an Admin to edit anyone.
-                  // 2. Can NEVER edit the Owner (unless you are the Owner, but you can't edit yourself here anyway).
+                  // 2. Can NEVER edit the Owner.
                   // 3. If I am NOT the Owner, I cannot edit other Admins.
                   const canEditRole = isAdmin && !isTargetOwner && (amIOwner || !isTargetAdmin);
 
@@ -291,7 +312,7 @@ export default function WorkspaceSettingsModal({
                         </div>
                       </div>
 
-                      {/* Remove Button Logic: Same rules apply. Can remove if Admin, but not Owner and not other Admins (unless I am Owner) */}
+                      {/* Remove Button Logic */}
                       {canEditRole && (
                         <button
                           onClick={() => handleRemoveMember(member.id)}
@@ -314,20 +335,40 @@ export default function WorkspaceSettingsModal({
             {/* Danger Zone */}
             <section>
               <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider mb-4">Danger Zone</h3>
-              <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-red-900">Delete Workspace</h4>
-                  <p className="text-sm text-red-700 mt-1">Permanently remove this workspace and all projects.</p>
+
+              {/* DELETE WORKSPACE (Only for Owner) */}
+              {amIOwner && (
+                <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-red-900">Delete Workspace</h4>
+                    <p className="text-sm text-red-700 mt-1">Permanently remove this workspace and all projects.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap"
+                  >
+                    Delete Workspace
+                  </button>
                 </div>
-                <button
-                  onClick={() => setIsDeleteConfirmOpen(true)}
-                  disabled={!amIOwner} // Changed: Only OWNER can delete
-                  className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Delete Workspace
-                </button>
-              </div>
-              {!amIOwner && <p className="text-xs text-gray-500 mt-2">Only the workspace owner can delete the workspace.</p>}
+              )}
+
+              {/* LEAVE WORKSPACE (For everyone else, including Admins who are not Owner) */}
+              {!amIOwner && (
+                <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-red-900">Leave Workspace</h4>
+                    <p className="text-sm text-red-700 mt-1">Revoke your access to this workspace.</p>
+                  </div>
+                  <button
+                    onClick={handleLeaveWorkspace}
+                    disabled={isLeaving}
+                    className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isLeaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Leave Workspace
+                  </button>
+                </div>
+              )}
             </section>
           </div>
         </div>

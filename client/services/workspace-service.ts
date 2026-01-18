@@ -68,6 +68,21 @@ export const workspaceService = {
     return data;
   },
 
+  async leaveWorkspace(workspaceId: string): Promise<void> {
+    const token = authService.getToken();
+    const response = await fetch(`${API_BASE_URL}/${workspaceId}/leave`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || "Failed to leave workspace");
+    }
+  },
+  
   async deleteWorkspace(workspaceId: string): Promise<void> {
     const token = authService.getToken();
     const response = await fetch(`${API_BASE_URL}/${workspaceId}`, {

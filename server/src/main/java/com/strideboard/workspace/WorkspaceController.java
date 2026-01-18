@@ -358,6 +358,33 @@ public class WorkspaceController {
                 return ResponseEntity.ok(result);
         }
 
+        @DeleteMapping("/{workspaceId}/leave")
+        @Transactional
+        public ResponseEntity<?> leaveWorkspace(@PathVariable UUID workspaceId, Authentication auth) {
+                User currentUser = userRepository.findByEmail(auth.getName())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                Membership membership = membershipRepository
+                                .findByUserIdAndWorkspaceId(currentUser.getId(), workspaceId)
+                                .orElse(null);
+
+                if (membership == null) {
+                        return ResponseEntity.notFound().build();
+                }
+                
+                // owner cannot leave
+                Workspace workspace = membership.getWorkspace();
+                if (workspace.getOwner().getId().equals(currentUser.getId())) {
+                        return ResponseEntity.status(403)
+                                        .body(Map.of("message",
+                                                        "The Workspace Owner cannot leave. You must delete the workspace instead."));
+                }
+
+                membershipRepository.delete(membership);
+
+                return ResponseEntity.noContent().build();
+        }
+
         // --- User Search ---
 
         @GetMapping("/users/search")

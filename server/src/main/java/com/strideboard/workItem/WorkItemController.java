@@ -163,6 +163,7 @@ public class WorkItemController {
         if (!validateHierarchy(workItem, projectId, workspaceId)) {
             return ResponseEntity.status(400).build();
         }
+        UUID oldAssigneeId = (workItem.getAssignee() != null) ? workItem.getAssignee().getId() : null;
 
         // Apply Updates
         if (request.title() != null && !request.title().isBlank())
@@ -184,8 +185,41 @@ public class WorkItemController {
                 return ResponseEntity.badRequest().build();
             }
             workItem.setAssignee(assignee);
-        } 
-        return ResponseEntity.ok(workItemRepository.save(workItem));
+        }
+
+        WorkItem savedWorkItem = workItemRepository.save(workItem);
+        User currentAssignee = savedWorkItem.getAssignee();
+
+        if (currentAssignee != null) {
+            boolean isSelfUpdate = currentAssignee.getId().equals(user.getId());
+
+            if (!isSelfUpdate) {
+                String title = null;
+                String subtitle = null;
+
+                boolean isNewAssignment = oldAssigneeId == null || !oldAssigneeId.equals(currentAssignee.getId());
+
+                if (isNewAssignment) {
+                    title = "New Task Assigned";
+                    subtitle = "You have been assigned to: " + savedWorkItem.getTitle();
+                } else {
+                    title = "Task Updated";
+                    subtitle = "Updates were made to: " + savedWorkItem.getTitle();
+                }
+                Notification notification = Notification.builder()
+                        .recipient(currentAssignee)
+                        .type(NotificationType.UPDATE)
+                        .workspace(savedWorkItem.getProject().getWorkspace())
+                        .workItem(savedWorkItem)
+                        .title(title)
+                        .subtitle(subtitle)
+                        .build();
+
+                notificationRepository.save(notification);
+            }
+        }
+
+        return ResponseEntity.ok(savedWorkItem);
     }
 
     @DeleteMapping("/{workItemId}")
