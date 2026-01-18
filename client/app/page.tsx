@@ -68,7 +68,7 @@ export default function LandingPage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="https://github.com/JonathanHii/Project-Management-Platform"
+              href="https://github.com/JonathanHii/Strideboard"
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium px-6 py-3 rounded-lg transition-colors"
