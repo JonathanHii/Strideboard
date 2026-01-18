@@ -34,7 +34,7 @@ export default function UserActions() {
 
   const handleLogout = () => {
     authService.logout();
-    router.push("/login");
+    router.push("/");
     router.refresh();
   };
 
