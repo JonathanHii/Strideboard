@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { workspaceService } from "@/services/workspace-service";
+import { projectService } from "@/services/project-service";
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export default function CreateProjectModal({
 
     setIsCreating(true);
     try {
-      await workspaceService.createProject(workspaceId, {
+      await projectService.createProject(workspaceId, {
         name: newName,
         description: newDescription,
       });

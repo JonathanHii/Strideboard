@@ -51,7 +51,7 @@ export default function SettingsPage() {
                 if (workspaceId && projectId) {
                     // Fetch all required data in parallel
                     const [projectData, memberData, creatorStatus] = await Promise.all([
-                        workspaceService.getProjectById(workspaceId, projectId),
+                        projectService.getProjectById(workspaceId, projectId),
                         workspaceService.getCurrentUserInWorkspace(workspaceId),
                         projectService.isProjectCreator(workspaceId, projectId)
                     ]);

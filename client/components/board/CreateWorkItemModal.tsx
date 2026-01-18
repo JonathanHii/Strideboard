@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { projectService } from "@/services/project-service";
 import { workspaceService } from "@/services/workspace-service";
+import { workItemService } from "@/services/work-item-service";
 import {
     WorkItemStatus,
     WorkItemPriority,
@@ -145,7 +146,7 @@ export default function CreateWorkItemModal({
                 // Ensure assigneeId is undefined if null/empty
             };
 
-            await projectService.createWorkItem(workspaceId, projectId, payload);
+            await workItemService.createWorkItem(workspaceId, projectId, payload);
 
             await onSuccess();
             onClose();

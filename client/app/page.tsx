@@ -36,7 +36,7 @@ export default function LandingPage() {
                 Log in
               </Link>
               <Link
-                href="/signup"
+                href="/register"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors shadow-sm"
               >
                 Get Started
@@ -78,14 +78,19 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* --- Dashboard Preview --- */}
-          <div className="mt-12 bg-gray-100 border border-gray-200 rounded-xl overflow-hidden shadow-2xl">
-            <img
-              src="/dashboard.png"
-              alt="Strideboard Dashboard Interface"
-              className="w-full h-auto block"
-            />
-          </div>
+{/* --- Dashboard Preview --- */}
+<div className="mt-12 bg-gray-100 border border-gray-200 rounded-xl overflow-hidden shadow-2xl relative">
+  {/* Use the Next.js Image component you already imported */}
+  <Image
+    src="/dashboard.png"
+    alt="Strideboard Dashboard Interface"
+    width={2541} // Set these to the approximate aspect ratio of your image
+    height={1422}
+    quality={90}
+    priority={true} // Loads this image immediately (good for LCP)
+    className="w-full h-auto block"
+  />
+</div>
         </div>
 
         {/* --- Tech Stack --- */}

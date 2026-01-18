@@ -8,16 +8,16 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const publicPaths = ['/login', '/register', '/'];
-  
+
   const isPublicPath = publicPaths.includes(pathname);
 
   //  If the user is NOT on a public page and HAS NO token -> Redirect to login
   if (!isPublicPath && !token) {
     const loginUrl = new URL('/login', request.url);
-    
+
     // This allows the login page to know where the user was trying to go
-    loginUrl.searchParams.set('from', pathname); 
-    
+    loginUrl.searchParams.set('from', pathname);
+
     return NextResponse.redirect(loginUrl);
   }
 
@@ -39,7 +39,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public files (images, svgs, etc) <-- ADD THIS LOGIC
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)',
   ],
 };

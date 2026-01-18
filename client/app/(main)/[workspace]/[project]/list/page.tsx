@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { projectService } from "@/services/project-service";
 import { workspaceService } from "@/services/workspace-service";
+import { workItemService } from "@/services/work-item-service";
 import { WorkItem, WorkItemStatus, WorkItemPriority, WorkspaceMember } from "@/types/types";
 import { Search, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import CreateWorkItemModal from "@/components/board/CreateWorkItemModal";
@@ -49,7 +50,7 @@ export default function ListPage() {
             if (workspaceId && projectId) {
                 // Fetch items and member data in parallel
                 const [data, memberData] = await Promise.all([
-                    projectService.getProjectWorkItems(workspaceId, projectId),
+                    workItemService.getProjectWorkItems(workspaceId, projectId),
                     workspaceService.getCurrentUserInWorkspace(workspaceId)
                 ]);
                 

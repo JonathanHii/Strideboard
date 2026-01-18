@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { workspaceService } from "@/services/workspace-service";
+import { projectService } from "@/services/project-service";
 import { Workspace, Project } from "@/types/types";
 
 export default function Breadcrumbs() {
@@ -35,7 +36,7 @@ export default function Breadcrumbs() {
 
       // Only fetch project if ID exists in URL
       if (projectId) {
-        fetchTasks.push(workspaceService.getProjectById(workspaceId, projectId));
+        fetchTasks.push(projectService.getProjectById(workspaceId, projectId));
       }
 
       // Execute parallel requests

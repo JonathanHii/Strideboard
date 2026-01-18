@@ -1,39 +1,63 @@
 import { authService } from "./auth-service";
-import { CreateWorkItemRequest, UpdateWorkItemRequest, WorkItem } from "@/types/types";
+import { Project, CreateProjectRequest } from "@/types/types";
 
+// Base URL for projects
 const API_BASE_URL = "http://localhost:8080/api/projects";
 
 export const projectService = {
-    /**
-     * Fetches all work items for a specific project.
-     * Note: workspaceId is required by the backend for security/membership validation.
-     */
-    async getProjectWorkItems(workspaceId: string, projectId: string): Promise<WorkItem[]> {
-        const token = authService.getToken();
 
-        // The URL structure assumes the fix provided in the section below
-        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/work-items`, {
+    /**
+     * Get all projects for a specific workspace
+     */
+    async getWorkspaceProjects(workspaceId: string): Promise<Project[]> {
+        const token = authService.getToken();
+        const response = await fetch(`${API_BASE_URL}/${workspaceId}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+                "Authorization": `Bearer ${token}`
             },
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to fetch work items");
-        }
-
+        if (!response.ok) throw new Error(data.message || "Failed to fetch projects");
         return data;
     },
+
     /**
- * Update project name - Admin only
- */
+     * Get specific project details
+     */
+    async getProjectById(workspaceId: string, projectId: string): Promise<Project> {
+        const token = authService.getToken();
+        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}`, {
+            headers: { "Authorization": `Bearer ${token}` },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch project");
+        return response.json();
+    },
+
+    /**
+     * Create a new project
+     */
+    async createProject(workspaceId: string, data: CreateProjectRequest): Promise<Project> {
+        const token = authService.getToken();
+        const response = await fetch(`${API_BASE_URL}/${workspaceId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Failed to create project");
+        return result;
+    },
+
     async updateProjectName(workspaceId: string, projectId: string, name: string): Promise<void> {
         const token = authService.getToken();
-
         const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/name`, {
             method: "PATCH",
             headers: {
@@ -49,12 +73,8 @@ export const projectService = {
         }
     },
 
-    /**
-     * Update project description - Admin only
-     */
     async updateProjectDescription(workspaceId: string, projectId: string, description: string): Promise<void> {
         const token = authService.getToken();
-
         const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/description`, {
             method: "PATCH",
             headers: {
@@ -70,12 +90,8 @@ export const projectService = {
         }
     },
 
-    /**
-     * Delete project - Admin only
-     */
     async deleteProject(workspaceId: string, projectId: string): Promise<void> {
         const token = authService.getToken();
-
         const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}`, {
             method: "DELETE",
             headers: {
@@ -90,34 +106,8 @@ export const projectService = {
         }
     },
 
-    async createWorkItem(
-        workspaceId: string,
-        projectId: string,
-        payload: CreateWorkItemRequest
-    ): Promise<WorkItem> {
-        const token = authService.getToken();
-
-        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/work-items`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to create work item");
-        }
-
-        return data;
-    },
-
     async isProjectCreator(workspaceId: string, projectId: string): Promise<boolean> {
         const token = authService.getToken();
-
         const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/is-creator`, {
             method: "GET",
             headers: {
@@ -127,58 +117,7 @@ export const projectService = {
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to check creator status");
-        }
-
-        return data; // Returns true or false
-    },
-
-    async updateWorkItem(
-        workspaceId: string,
-        projectId: string,
-        workItemId: string,
-        payload: UpdateWorkItemRequest
-    ): Promise<WorkItem> {
-        const token = authService.getToken();
-
-        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/work-items/${workItemId}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to update work item");
-        }
-
+        if (!response.ok) throw new Error(data.message || "Failed to check creator status");
         return data;
-    },
-
-    /**
-     * Delete a work item
-     */
-    async deleteWorkItem(workspaceId: string, projectId: string, workItemId: string): Promise<void> {
-        const token = authService.getToken();
-
-        const response = await fetch(`${API_BASE_URL}/${workspaceId}/${projectId}/work-items/${workItemId}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-        });
-
-        if (!response.ok) {
-            // Try to parse error message, but handle empty body gracefully
-            const data = await response.json().catch(() => ({}));
-            throw new Error(data.message || "Failed to delete work item");
-        }
     },
 };

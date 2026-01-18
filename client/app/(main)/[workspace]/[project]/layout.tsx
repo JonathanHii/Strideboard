@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, usePathname } from "next/navigation";
+import { projectService } from "@/services/project-service";
 import {
   LayoutDashboard,
   List,
@@ -14,8 +15,8 @@ import Link from "next/link";
 
 export default function ProjectLayout({
   children,
-}:  {
-  children:  React.ReactNode;
+}: {
+  children: React.ReactNode;
 }) {
   const params = useParams();
   const pathname = usePathname();
@@ -29,8 +30,8 @@ export default function ProjectLayout({
   const fetchProjectData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [projectData, workspaces] = await Promise. all([
-        workspaceService.getProjectById(workspaceId, projectId),
+      const [projectData, workspaces] = await Promise.all([
+        projectService.getProjectById(workspaceId, projectId),
         workspaceService.getMyWorkspaces()
       ]);
 
@@ -61,7 +62,7 @@ export default function ProjectLayout({
 
   const tabs = [
     { name: "Board", href: `/${workspaceId}/${projectId}/board`, icon: <LayoutDashboard size={16} /> },
-    { name:  "List", href:  `/${workspaceId}/${projectId}/list`, icon: <List size={16} /> },
+    { name: "List", href: `/${workspaceId}/${projectId}/list`, icon: <List size={16} /> },
     { name: "Settings", href: `/${workspaceId}/${projectId}/settings`, icon: <Settings size={16} /> },
   ];
 
@@ -70,10 +71,10 @@ export default function ProjectLayout({
       <header className="max-w-7xl w-full mx-auto flex-none">
         <div className="flex items-center justify-between mb-5 h-[40px]">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            {isLoading ?  (
+            {isLoading ? (
               <span className="flex items-center gap-3 text-gray-400">
                 <Loader2 size={24} className="animate-spin text-indigo-600" />
-                Loading... 
+                Loading...
               </span>
             ) : (
               project?.name || "Project Not Found"
@@ -86,7 +87,7 @@ export default function ProjectLayout({
             const isActive = pathname === tab.href;
             return (
               <Link
-                key={tab. href}
+                key={tab.href}
                 href={tab.href}
                 className={`flex items-center gap-2 pb-4 text-sm font-medium border-b-2 transition-colors ${isActive
                   ? "border-indigo-600 text-indigo-600"
@@ -94,7 +95,7 @@ export default function ProjectLayout({
                   }`}
               >
                 {tab.icon}
-                {tab. name}
+                {tab.name}
               </Link>
             );
           })}

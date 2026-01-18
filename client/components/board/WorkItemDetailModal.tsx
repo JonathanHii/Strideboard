@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { projectService } from "@/services/project-service";
 import { workspaceService } from "@/services/workspace-service";
+import { workItemService } from "@/services/work-item-service";
 import {
     WorkItem,
     WorkItemStatus,
@@ -209,7 +210,7 @@ export default function WorkItemDetailModal({
                 assigneeId: assigneeId || null,
             };
 
-            const updatedItem = await projectService.updateWorkItem(
+            const updatedItem = await workItemService.updateWorkItem(
                 workspaceId,
                 projectId,
                 item.id,
@@ -231,7 +232,7 @@ export default function WorkItemDetailModal({
 
         setIsDeleting(true);
         try {
-            await projectService.deleteWorkItem(workspaceId, projectId, item.id);
+            await workItemService.deleteWorkItem(workspaceId, projectId, item.id);
             onDelete(item.id);
         } catch (error: any) {
             console.error("Failed to delete work item", error);

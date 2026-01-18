@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { projectService } from "@/services/project-service";
 import { workspaceService } from "@/services/workspace-service";
+import { workItemService } from "@/services/work-item-service";
 import { WorkItem, WorkItemStatus, WorkspaceMember } from "@/types/types";
 import { Search, Plus } from "lucide-react";
 
@@ -32,7 +33,7 @@ export default function BoardPage() {
             if (workspaceId && projectId) {
                 // Fetch items and member data in parallel
                 const [data, memberData] = await Promise.all([
-                    projectService.getProjectWorkItems(workspaceId, projectId),
+                    workItemService.getProjectWorkItems(workspaceId, projectId),
                     workspaceService.getCurrentUserInWorkspace(workspaceId)
                 ]);
 

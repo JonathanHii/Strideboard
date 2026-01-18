@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { FolderOpen, Plus, Search, Loader2, Settings, Users } from "lucide-react";
 import { Workspace, Project, WorkspaceMember } from "@/types/types";
 import { workspaceService } from "@/services/workspace-service";
+import { projectService } from "@/services/project-service";
 import ProjectCard from "@/components/workspace/project-card";
 import CreateProjectModal from "@/components/workspace/create-project-modal";
 import WorkspaceSettingsModal from "@/components/workspace/workspace-settings-modal";
@@ -37,7 +38,7 @@ export default function WorkspaceProjectsPage() {
       if (projects.length === 0) setLoading(true);
 
       const [projectData, workspaceList, memberData] = await Promise.all([
-        workspaceService.getWorkspaceProjects(workspaceId),
+        projectService.getWorkspaceProjects(workspaceId),
         workspaceService.getMyWorkspaces(),
         workspaceService.getCurrentUserInWorkspace(workspaceId)
       ]);
