@@ -30,7 +30,7 @@ services:
       context: ./client
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      container_name: strideboard-client
+    container_name: strideboard-client
 
 volumes:
   postgres_data:
