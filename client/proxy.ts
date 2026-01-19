@@ -2,7 +2,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function proxy(request: NextRequest) {
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/auth`;
+
+export async function proxy(request: NextRequest) {
   // Extract the token from cookies
   const token = request.cookies.get('stride_token')?.value;
   const { pathname } = request.nextUrl;
@@ -11,26 +13,46 @@ export function proxy(request: NextRequest) {
 
   const isPublicPath = publicPaths.includes(pathname);
 
-  //  If the user is NOT on a public page and HAS NO token -> Redirect to login
-  if (!isPublicPath && !token) {
-    const loginUrl = new URL('/login', request.url);
+  if (!isPublicPath) {
+    let isValid = false;
 
-    // This allows the login page to know where the user was trying to go
-    loginUrl.searchParams.set('from', pathname);
+    // If we have a token, check it against the API
+    if (token) {
+      try {
+        const response = await fetch(`${API_URL}/check`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        isValid = response.ok; // set to true
+      } catch (error) {
+        isValid = false;
+      }
+    }
 
-    return NextResponse.redirect(loginUrl);
+    // If no token OR token is invalid -> Redirect & Delete Cookie
+    if (!token || !isValid) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('from', pathname);
+
+      const response = NextResponse.redirect(loginUrl);
+
+      // delete if corrupted token
+      if (token) {
+        response.cookies.delete('stride_token');
+      }
+
+      return response;
+    }
   }
 
-  // If the user HAS a token and tries to access the login page -> Redirect to 
   if (token && pathname === '/login') {
     return NextResponse.redirect(new URL('/workspaces', request.url));
   }
 
-  // Allow the request to proceed for all other cases
   return NextResponse.next();
 }
 
-// Configuration to determine where this logic runs
+// Configg
 export const config = {
   matcher: [
     /*

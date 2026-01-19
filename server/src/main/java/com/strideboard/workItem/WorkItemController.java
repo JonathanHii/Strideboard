@@ -176,6 +176,8 @@ public class WorkItemController {
             workItem.setPriority(request.priority());
         if (request.type() != null)
             workItem.setType(request.type());
+        if (request.position() != null)
+            workItem.setPosition(request.position());
 
         // Update Assignee
         if (request.assigneeId() != null) {

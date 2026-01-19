@@ -61,6 +61,7 @@ export interface UpdateWorkItemRequest {
   priority?: WorkItemPriority;
   type?: WorkItemType;
   assigneeId?: string | null;
+  position?: number; // optionl ahaha
 }
 
 export type WorkItemStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'DONE';
