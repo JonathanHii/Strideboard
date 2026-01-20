@@ -62,6 +62,7 @@ export interface UpdateWorkItemRequest {
   type?: WorkItemType;
   assigneeId?: string | null;
   position?: number; // optionl ahaha
+  removeAssignee?: boolean;
 }
 
 export type WorkItemStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'DONE';
@@ -90,7 +91,7 @@ export interface WorkItem {
 
 export interface InboxItem {
   id: string;
-  type: 'invite' | 'update'; 
+  type: 'invite' | 'update';
   workspaceName: string;
   projectName: string | null; // Nullable for invites
   subtitle: string;

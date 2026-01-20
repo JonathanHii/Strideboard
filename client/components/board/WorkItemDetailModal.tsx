@@ -201,6 +201,9 @@ export default function WorkItemDetailModal({
 
         setIsSaving(true);
         try {
+
+            const shouldRemoveAssignee = !assigneeId;
+            
             const payload: UpdateWorkItemRequest = {
                 title: title.trim(),
                 description: description.trim() || undefined,
@@ -208,6 +211,7 @@ export default function WorkItemDetailModal({
                 priority,
                 type,
                 assigneeId: assigneeId || null,
+                removeAssignee: shouldRemoveAssignee,
             };
 
             const updatedItem = await workItemService.updateWorkItem(
