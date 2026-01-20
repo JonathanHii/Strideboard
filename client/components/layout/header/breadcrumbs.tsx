@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { workspaceService } from "@/services/workspace-service";
 import { projectService } from "@/services/project-service";
 import { Workspace, Project } from "@/types/types";

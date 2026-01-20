@@ -75,7 +75,7 @@ export default function WorkspacesPage() {
         ))}
 
         {workspaces.length === 0 && (
-          <div className="col-span-full py-20 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center">
+          <div className="col-span-full py-20 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center text-center">
             <div className="bg-gray-50 p-4 rounded-full mb-4">
               <Plus className="w-8 h-8 text-gray-300" />
             </div>

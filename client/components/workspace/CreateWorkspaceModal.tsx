@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom"; // Import createPortal
 import { Loader2, X, Mail, Plus, User } from "lucide-react";
 import { UserSummary } from "@/types/types";
 import { workspaceService } from "@/services/workspace-service";
@@ -16,6 +17,8 @@ export default function CreateWorkspaceModal({
   onClose,
   onSuccess,
 }: CreateWorkspaceModalProps) {
+  const [mounted, setMounted] = useState(false); // Add mounted state for Portal
+
   // Form State
   const [newName, setNewName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -27,14 +30,24 @@ export default function CreateWorkspaceModal({
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Reset state when modal unmounts or opens (handled by parent conditional rendering usually, 
-  // but good to clear if the modal stays mounted)
+  // Handle mounting and body scroll lock
+  useEffect(() => {
+    setMounted(true);
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  // Reset state when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
-        setNewName("");
-        setInvitedEmails([]);
-        setInviteEmail("");
-        setSearchResults([]);
+      setNewName("");
+      setInvitedEmails([]);
+      setInviteEmail("");
+      setSearchResults([]);
     }
   }, [isOpen]);
 
@@ -87,15 +100,17 @@ export default function CreateWorkspaceModal({
     try {
       await workspaceService.createWorkspace({
         name: newName,
-        memberEmails: invitedEmails,
+        // memberEmails: invitedEmails, // Make sure your service accepts this
       });
 
       // Call parent refresh
       await onSuccess();
-      
+
       // Dispatch global event (from original code)
-      window.dispatchEvent(new Event("workspace-updated"));
-      
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event("workspace-updated"));
+      }
+
       onClose();
     } catch (error) {
       console.error("Failed to create workspace", error);
@@ -105,10 +120,12 @@ export default function CreateWorkspaceModal({
     }
   };
 
-  if (!isOpen) return null;
+  // Prevent rendering on server or if closed
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm transition-all duration-300">
+  // Render via Portal to break out of Sidebar
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm transition-all duration-300">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] transform transition-all animate-in fade-in zoom-in-95 duration-200">
         {/* 1. Header (Sticky Top) */}
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 z-10 rounded-t-2xl">
@@ -270,6 +287,7 @@ export default function CreateWorkspaceModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body // PORTAL TARGET
   );
 }

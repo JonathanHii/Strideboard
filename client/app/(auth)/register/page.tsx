@@ -18,6 +18,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authService.register(email, password, fullName);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       router.push("/workspaces");
     } catch (err: any) {
       alert(err.message || "Registration failed. Try again.");

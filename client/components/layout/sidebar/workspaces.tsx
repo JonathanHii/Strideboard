@@ -10,7 +10,7 @@ export default function MyWork({ onNavigate }: MyWorkProps) {
     <Link
       href="/workspaces"
       onClick={onNavigate}
-      className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-900 font-medium transition-colors"
+      className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-900 font-medium hover:bg-gray-100 transition-colors"
     >
       <User2 className="w-4 h-4 text-gray-500" />
       <span>All Workspaces</span>

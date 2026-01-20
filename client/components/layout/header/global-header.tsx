@@ -3,7 +3,7 @@ import Breadcrumbs from "./breadcrumbs";
 
 export default function GlobalHeader() {
   return (
-    <header className="relative h-15 md:h-20 border-b border-gray-200 bg-white w-full px-8 flex items-center">
+    <header className="relative h-16 md:h-20 border-b border-gray-200 bg-white w-full px-8 flex items-center">
       
       {/* Centered Breadcrumbs container */}
       <div className="w-full max-w-7xl mx-auto flex items-center pr-16">
