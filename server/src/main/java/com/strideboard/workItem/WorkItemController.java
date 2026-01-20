@@ -180,9 +180,14 @@ public class WorkItemController {
             workItem.setPosition(request.position());
 
         // Update Assignee
-        if (request.assigneeId() != null) {
+        if (Boolean.TRUE.equals(request.removeAssignee())) {
+            // Explicitly remove assignee
+            workItem.setAssignee(null);
+        } else if (request.assigneeId() != null) {
+            //  Update to a specific new assignee
             User assignee = userRepository.findById(request.assigneeId())
                     .orElseThrow(() -> new RuntimeException("Assignee not found"));
+
             if (!membershipRepository.existsByUserIdAndWorkspaceId(assignee.getId(), workspaceId)) {
                 return ResponseEntity.badRequest().build();
             }
