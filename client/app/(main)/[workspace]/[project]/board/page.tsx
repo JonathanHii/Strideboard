@@ -251,7 +251,7 @@ export default function BoardPage() {
             {isBrowser ? (
                 <DragDropContext onDragEnd={onDragEnd}>
 
-                    <div className="flex flex-1 gap-0 md:gap-6 overflow-x-auto overflow-y-hidden min-h-0 pb-4 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">                        {COLUMNS.map((status) => (
+                    <div className="flex flex-1 gap-0 md:gap-6 overflow-x-auto overflow-y-hidden min-h-0 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">                        {COLUMNS.map((status) => (
                         <div
                             key={status}
                             className="flex flex-col min-w-full md:min-w-[280px] flex-1 max-w-full md:max-w-[350px] h-full max-h-full snap-center px-4 md:px-0"

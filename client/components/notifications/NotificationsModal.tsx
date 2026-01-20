@@ -210,7 +210,7 @@ export default function NotificationsModal({
                                     {item.type !== 'invite' && (
                                         <button
                                             onClick={(e) => handleMarkRead(e, item.id)}
-                                            className="absolute right-3 top-3 p-1.5 rounded-lg text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100"
+                                            className="absolute right-3 top-3 p-1.5 rounded-lg text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                             title="Mark as read"
                                         >
                                             <Check className="w-4 h-4" />

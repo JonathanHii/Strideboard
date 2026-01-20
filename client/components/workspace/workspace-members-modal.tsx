@@ -23,10 +23,8 @@ export default function WorkspaceMembersModal({
 
     const router = useRouter();
 
-    // New state for the leave action (loader)
     const [isLeaving, setIsLeaving] = useState(false);
 
-    // Load Members
     const loadMemberData = useCallback(async () => {
         if (!workspace.id) return;
         setLoading(true);
@@ -68,7 +66,6 @@ export default function WorkspaceMembersModal({
         }
     };
 
-    // Helper Utils
     const getInitials = (name: string, email: string) => {
         if (name && name.trim()) {
             const parts = name.trim().split(" ");
@@ -96,10 +93,9 @@ export default function WorkspaceMembersModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm transition-all duration-300">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85vh] transform transition-all animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85dvh] sm:max-h-[85vh] transform transition-all animate-in fade-in zoom-in-95 duration-200">
 
-                {/* Header */}
-                <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 z-10 rounded-t-2xl">
+                <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 z-10 rounded-t-2xl">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                             <Users className="w-5 h-5 text-gray-500" />
@@ -117,30 +113,27 @@ export default function WorkspaceMembersModal({
                     </button>
                 </div>
 
-                {/* Scrollable Content */}
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 [scrollbar-gutter:stable]">
+                <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 [scrollbar-gutter:stable]">
                     {loading ? (
                         <div className="flex justify-center py-8">
                             <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
                         </div>
                     ) : (
-                        <div className="space-y-6"> {/* Increased space-y to separate sections */}
+                        <div className="space-y-6">
 
-                            {/* Member List Section */}
                             <div className="space-y-3">
-                                {/* Current User Card */}
                                 {currentUser && (
                                     <div className="flex items-center justify-between p-3 border border-indigo-200 bg-indigo-50/50 rounded-xl">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
                                             <div
-                                                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(
+                                                className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center font-bold text-sm ${getAvatarColor(
                                                     currentUser.role
                                                 )}`}
                                             >
                                                 You
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
                                                     {currentUser.name || currentUser.email}
                                                     <span className="ml-2 text-xs text-indigo-600 font-normal">
                                                         (You)
@@ -154,7 +147,6 @@ export default function WorkspaceMembersModal({
                                     </div>
                                 )}
 
-                                {/* Other Members List */}
                                 {members
                                     .filter((member) => currentUser && member.id !== currentUser.id)
                                     .map((member) => (
@@ -162,16 +154,16 @@ export default function WorkspaceMembersModal({
                                             key={member.id}
                                             className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
                                         >
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-3 min-w-0">
                                                 <div
-                                                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(
+                                                    className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center font-bold text-sm ${getAvatarColor(
                                                         member.role
                                                     )}`}
                                                 >
                                                     {getInitials(member.name, member.email)}
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 truncate">
                                                         {member.name || member.email}
                                                     </p>
                                                     <p className="text-xs text-gray-500">{member.role}</p>
@@ -189,12 +181,11 @@ export default function WorkspaceMembersModal({
 
                             <hr className="border-gray-100" />
 
-                            {/* Danger Zone - Leave Workspace */}
                             <section>
                                 <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider mb-4">
                                     Danger Zone
                                 </h3>
-                                <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex items-center justify-between">
+                                <div className="border border-red-100 bg-red-50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
                                     <div>
                                         <h4 className="text-sm font-bold text-red-900">
                                             Leave Workspace
@@ -206,7 +197,7 @@ export default function WorkspaceMembersModal({
                                     <button
                                         onClick={handleLeaveWorkspace}
                                         disabled={isLeaving}
-                                        className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="w-full sm:w-auto px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-all shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {isLeaving && <Loader2 className="w-4 h-4 animate-spin" />}
                                         Leave Workspace
