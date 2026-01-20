@@ -48,7 +48,7 @@ export default function WorkspacesPage() {
 
   return (
     <div className="pb-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-5 md:mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Workspaces</h1>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -59,7 +59,7 @@ export default function WorkspacesPage() {
         </button>
       </div>
 
-      <div className="relative mb-8 max-w-sm">
+      <div className="relative mb-7 md:mb-8 max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"

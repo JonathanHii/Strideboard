@@ -69,7 +69,7 @@ export default function ProjectLayout({
   return (
     <div className="h-full w-full bg-white flex flex-col overflow-hidden">
       <header className="max-w-7xl w-full mx-auto flex-none">
-        <div className="flex items-center justify-between mb-5 h-[40px]">
+        <div className="flex items-center justify-between mb-3 md:mb-5 h-[40px]">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
             {isLoading ? (
               <span className="flex items-center gap-3 text-gray-400">
