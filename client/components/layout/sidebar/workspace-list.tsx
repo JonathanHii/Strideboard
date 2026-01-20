@@ -6,7 +6,11 @@ import Link from "next/link";
 import { Workspace } from "@/types/types";
 import { workspaceService } from "@/services/workspace-service";
 
-export default function WorkspaceList() {
+interface WorkspaceListProps {
+  onNavigate?: () => void;
+}
+
+export default function WorkspaceList({ onNavigate }: WorkspaceListProps) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +50,7 @@ export default function WorkspaceList() {
             <Link
               key={ws.id}
               href={`/${ws.id}`}
+              onClick={onNavigate}
               className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors text-sm group"
             >
               <Folder className="w-4 h-4 text-gray-400 group-hover:text-indigo-500" />

@@ -203,7 +203,7 @@ export default function WorkItemDetailModal({
         try {
 
             const shouldRemoveAssignee = !assigneeId;
-            
+
             const payload: UpdateWorkItemRequest = {
                 title: title.trim(),
                 description: description.trim() || undefined,
@@ -397,7 +397,7 @@ export default function WorkItemDetailModal({
                                 </div>
                                 <button
                                     onClick={handleClearAssignee}
-                                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                     title="Remove assignee"
                                 >
                                     <X className="w-4 h-4" />

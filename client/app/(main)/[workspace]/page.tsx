@@ -88,7 +88,7 @@ export default function WorkspaceProjectsPage() {
   return (
     <div className="pb-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-5 md:mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
           {workspace?.name || "Workspace"}
         </h1>
@@ -97,16 +97,16 @@ export default function WorkspaceProjectsPage() {
         {!isViewer && (
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 sm:px-4 sm:py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm"
           >
             <Plus className="w-5 h-5" />
-            New Project
+            <span className="hidden sm:inline">New Project</span>
           </button>
         )}
       </div>
 
       {/* Search Bar & Context Button Row */}
-      <div className="flex items-center justify-between mb-8 gap-4">
+      <div className="flex items-center justify-between mb-7 md:mb-8 gap-4">
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input

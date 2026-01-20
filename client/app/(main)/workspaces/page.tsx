@@ -48,20 +48,18 @@ export default function WorkspacesPage() {
 
   return (
     <div className="pb-8 max-w-7xl mx-auto">
-      {/* Header Section - Matches WorkspaceProjectsPage */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-5 md:mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Workspaces</h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 sm:px-4 sm:py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-sm"
         >
           <Plus className="w-5 h-5" />
-          Create Workspace
+          <span className="hidden sm:inline">Create Workspace</span>
         </button>
       </div>
 
-      {/* Main Search Bar - Matches WorkspaceProjectsPage */}
-      <div className="relative mb-8 max-w-sm">
+      <div className="relative mb-7 md:mb-8 max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"

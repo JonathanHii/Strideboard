@@ -1,12 +1,11 @@
-"use client";
+"use client"
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { projectService } from "@/services/project-service";
 import { workspaceService } from "@/services/workspace-service";
 import { workItemService } from "@/services/work-item-service";
 import { WorkItem, WorkItemStatus, WorkItemPriority, WorkspaceMember } from "@/types/types";
-import { Search, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Search, Plus, ChevronUp, ChevronDown, ChevronsUpDown, Calendar, User as UserIcon } from "lucide-react";
 import CreateWorkItemModal from "@/components/board/CreateWorkItemModal";
 import WorkItemDetailModal from "@/components/board/WorkItemDetailModal";
 import ViewOnlyWorkItemModal from "@/components/board/ViewOnlyWorkItemModal";
@@ -49,7 +48,6 @@ export default function ListPage() {
     const fetchListData = async () => {
         try {
             if (workspaceId && projectId) {
-                // Fetch items and member data in parallel
                 const [data, memberData] = await Promise.all([
                     workItemService.getProjectWorkItems(workspaceId, projectId),
                     workspaceService.getCurrentUserInWorkspace(workspaceId)
@@ -70,7 +68,6 @@ export default function ListPage() {
     }, [params]);
 
     // Websocket
-    // NOTE: capturing result to get isConnected status
     const socketResult = useProjectSocket(projectId, (event) => {
         setItems((currentItems) => {
             switch (event.type) {
@@ -79,40 +76,29 @@ export default function ListPage() {
                         return [...currentItems, event.workItem];
                     }
                     return currentItems;
-
                 case 'UPDATED':
                     if (!event.workItem) return currentItems;
                     return currentItems.map(item =>
                         item.id === event.workItem!.id ? event.workItem! : item
                     );
-
                 case 'DELETED':
                     return currentItems.filter(item => item.id !== event.workItemId);
-
                 default:
                     return currentItems;
             }
         });
     });
 
-    // Fallback to true if the hook returns void
     const isConnected = (socketResult as any)?.isConnected ?? true;
 
     const handleCreateSuccess = async () => {
         await fetchListData();
     };
 
-    // --- Detail Modal Handlers ---
-    const handleItemClick = (item: WorkItem) => {
-        setSelectedItem(item);
-    };
-
-    const handleCloseDetail = () => {
-        setSelectedItem(null);
-    };
+    const handleItemClick = (item: WorkItem) => setSelectedItem(item);
+    const handleCloseDetail = () => setSelectedItem(null);
 
     const handleItemUpdate = async (updatedItem: WorkItem) => {
-        // Update local state immediately
         setItems((prevItems) =>
             prevItems.map((item) =>
                 item.id === updatedItem.id ? updatedItem : item
@@ -121,11 +107,9 @@ export default function ListPage() {
     };
 
     const handleItemDelete = async (itemId: string) => {
-        // Remove from local state
         setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
         setSelectedItem(null);
     };
-    // -----------------------------
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -144,7 +128,6 @@ export default function ListPage() {
 
         return filtered.sort((a, b) => {
             let comparison = 0;
-
             switch (sortField) {
                 case "title":
                     comparison = a.title.localeCompare(b.title);
@@ -164,7 +147,6 @@ export default function ListPage() {
                     comparison = nameA.localeCompare(nameB);
                     break;
             }
-
             return sortDirection === "asc" ? comparison : -comparison;
         });
     }, [items, searchQuery, sortField, sortDirection]);
@@ -178,7 +160,6 @@ export default function ListPage() {
             : <ChevronDown className="h-3 w-3 text-indigo-600" />;
     };
 
-    // Determine if viewer
     const isViewer = currentMember?.role === "Viewer";
 
     if (isLoading) return <div className="p-10 animate-pulse text-slate-400">Loading list...</div>;
@@ -187,20 +168,33 @@ export default function ListPage() {
     return (
         <div className="h-full w-full flex flex-col">
 
-            {/* --- List Toolbar (Fixed at top) --- */}
-            <div className="flex items-center justify-between mb-6 flex-none">
-                <div className="relative w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Search items..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                    />
+            {/* --- List Toolbar --- */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-1 md:mb-6 gap-4 flex-none">
+
+                {/* Search Bar & Mobile Add Button */}
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-72">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Search items..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        />
+                    </div>
+                    {/* Mobile Only: Add Button (Small +) */}
+                    {!isViewer && (
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="md:hidden flex items-center justify-center h-10 w-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm shadow-indigo-100 transition-all flex-shrink-0"
+                        >
+                            <Plus className="h-5 w-5" />
+                        </button>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between md:justify-end gap-3">
                     <div className="flex items-center gap-1.5 px-2">
                         <div className={`h-1.5 w-1.5 rounded-full ${isConnected ? "bg-green-500" : "bg-red-400"}`} />
                         <span className={`text-xs font-medium ${isConnected ? "text-green-600" : "text-red-500"}`}>
@@ -208,11 +202,11 @@ export default function ListPage() {
                         </span>
                     </div>
 
-                    {/* Only show button if user is NOT a viewer */}
+                    {/* Desktop Only: Add Button (Full Text) */}
                     {!isViewer && (
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm shadow-indigo-100"
+                            className="hidden md:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm shadow-indigo-100"
                         >
                             <Plus className="h-4 w-4" />
                             New Item
@@ -221,58 +215,32 @@ export default function ListPage() {
                 </div>
             </div>
 
-            {/* --- Table Container (Scrollable Area) --- */}
-            <div className="flex-1 overflow-auto min-h-0 border border-slate-200 rounded-xl">
-                <table className="w-full min-w-[800px]">
+            {/* --- Content Area --- */}
+            <div className={`
+                flex-1 overflow-y-auto min-h-0 md:border border-slate-200 md:rounded-xl 
+                bg-white
+                [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]
+            `}>
+
+                {/* Desktop View: Table */}
+                <table className="hidden md:table w-full min-w-[800px]">
                     <thead className="bg-slate-50 sticky top-0 z-10">
                         <tr>
-                            <th
-                                className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors"
-                                onClick={() => handleSort("title")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Title
-                                    <SortIcon field="title" />
-                                </div>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSort("title")}>
+                                <div className="flex items-center gap-1">Title <SortIcon field="title" /></div>
                             </th>
-                            <th
-                                className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-32"
-                                onClick={() => handleSort("status")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Status
-                                    <SortIcon field="status" />
-                                </div>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-32" onClick={() => handleSort("status")}>
+                                <div className="flex items-center gap-1">Status <SortIcon field="status" /></div>
                             </th>
-                            <th
-                                className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-28"
-                                onClick={() => handleSort("priority")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Priority
-                                    <SortIcon field="priority" />
-                                </div>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-28" onClick={() => handleSort("priority")}>
+                                <div className="flex items-center gap-1">Priority <SortIcon field="priority" /></div>
                             </th>
-                            <th
-                                className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-40"
-                                onClick={() => handleSort("assignee")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Assignee
-                                    <SortIcon field="assignee" />
-                                </div>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-40" onClick={() => handleSort("assignee")}>
+                                <div className="flex items-center gap-1">Assignee <SortIcon field="assignee" /></div>
                             </th>
-                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest w-20">
-                                Type
-                            </th>
-                            <th
-                                className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-28"
-                                onClick={() => handleSort("createdAt")}
-                            >
-                                <div className="flex items-center gap-1">
-                                    Created
-                                    <SortIcon field="createdAt" />
-                                </div>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest w-20">Type</th>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors w-28" onClick={() => handleSort("createdAt")}>
+                                <div className="flex items-center gap-1">Created <SortIcon field="createdAt" /></div>
                             </th>
                         </tr>
                     </thead>
@@ -284,19 +252,36 @@ export default function ListPage() {
                                 onClick={() => handleItemClick(item)}
                             />
                         ))}
-                        {sortedAndFilteredItems.length === 0 && (
-                            <tr>
-                                <td colSpan={6} className="px-4 py-12 text-center text-slate-400 text-sm italic">
-                                    {searchQuery ? "No items match your search" : "No items in this project"}
-                                </td>
-                            </tr>
-                        )}
                     </tbody>
                 </table>
+
+                {/* Mobile View: Connected List */}
+                <div className="md:hidden p-4">
+                    <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                        {sortedAndFilteredItems.map((item) => (
+                            <MobileWorkItemCard
+                                key={item.id}
+                                item={item}
+                                onClick={() => handleItemClick(item)}
+                            />
+                        ))}
+                        {sortedAndFilteredItems.length === 0 && (
+                            <div className="p-8 text-center text-slate-400 text-sm italic">
+                                {searchQuery ? "No items match your search" : "No items in this project"}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {sortedAndFilteredItems.length === 0 && !searchQuery && items.length === 0 && (
+                    <div className="hidden md:block px-4 py-12 text-center text-slate-400 text-sm italic">
+                        No items in this project
+                    </div>
+                )}
             </div>
 
             {/* --- Footer Stats --- */}
-            <div className="flex-none pt-4 text-xs text-slate-400">
+            <div className="flex-none pt-4 text-xs text-slate-400 hidden md:block">
                 Showing {sortedAndFilteredItems.length} of {items.length} items
             </div>
 
@@ -309,7 +294,6 @@ export default function ListPage() {
                 projectId={projectId}
             />
 
-            {/* Conditional Rendering: View Only vs Editable Detail Modal */}
             {isViewer ? (
                 <ViewOnlyWorkItemModal
                     item={selectedItem}
@@ -331,6 +315,7 @@ export default function ListPage() {
     );
 }
 
+// Desktop Row Component
 function WorkItemRow({ item, onClick }: { item: WorkItem; onClick: () => void }) {
     const STATUS_CONFIG: Record<WorkItemStatus, string> = {
         BACKLOG: "bg-slate-100 text-slate-600 border-slate-200",
@@ -405,4 +390,55 @@ function WorkItemRow({ item, onClick }: { item: WorkItem; onClick: () => void })
             </td>
         </tr>
     );
+}
+
+// Mobile Card Component
+function MobileWorkItemCard({ item, onClick }: { item: WorkItem; onClick: () => void }) {
+    const STATUS_CONFIG: Record<WorkItemStatus, string> = {
+        BACKLOG: "bg-slate-100 text-slate-600 border-slate-200",
+        TODO: "bg-amber-50 text-amber-700 border-amber-200",
+        IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
+        DONE: "bg-green-50 text-green-700 border-green-200",
+    };
+
+    const statusStyle = STATUS_CONFIG[item.status];
+
+    return (
+        <div onClick={onClick} className="bg-white p-4 hover:bg-slate-50 transition-colors cursor-pointer">
+            <div className="flex justify-between items-start mb-2">
+                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md border ${statusStyle}`}>
+                    {item.status.replace("_", " ")}
+                </span>
+                {item.priority === 'URGENT' || item.priority === 'HIGH' ? (
+                    <span className="text-[10px] uppercase font-bold text-red-600 flex items-center gap-1">
+                        {item.priority}
+                    </span>
+                ) : null}
+            </div>
+
+            <h3 className="text-sm font-semibold text-slate-800 mb-1 line-clamp-2">{item.title}</h3>
+            {item.description && <p className="text-xs text-slate-500 mb-3 line-clamp-2">{item.description}</p>}
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                <div className="flex items-center gap-2">
+                    {item.assignee ? (
+                        <div className="h-5 w-5 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] text-indigo-700 font-bold">
+                            {item.assignee.fullName.charAt(0)}
+                        </div>
+                    ) : (
+                        <UserIcon className="h-3.5 w-3.5 text-slate-300" />
+                    )}
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                        {item.type}
+                    </span>
+                </div>
+                <div className="flex items-center gap-1 text-slate-400">
+                    <Calendar className="h-3 w-3" />
+                    <span className="text-[10px]">
+                        {new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                </div>
+            </div>
+        </div>
+    )
 }

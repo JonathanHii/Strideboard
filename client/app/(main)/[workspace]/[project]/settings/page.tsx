@@ -49,20 +49,16 @@ export default function SettingsPage() {
         const fetchSettingsData = async () => {
             try {
                 if (workspaceId && projectId) {
-                    // Fetch all required data in parallel
                     const [projectData, memberData, creatorStatus] = await Promise.all([
                         projectService.getProjectById(workspaceId, projectId),
                         workspaceService.getCurrentUserInWorkspace(workspaceId),
                         projectService.isProjectCreator(workspaceId, projectId)
                     ]);
 
-                    // Set Project Data
                     setProject(projectData);
                     setProjectName(projectData.name || "");
                     setProjectDescription(projectData.description || "");
-
-                    // Set Permissions Data
-                    setUserRole(memberData.role); // Assuming role returns "ADMIN", "MEMBER", or "VIEWER"
+                    setUserRole(memberData.role);
                     setIsCreator(creatorStatus);
                 }
             } catch (err: any) {
@@ -76,17 +72,11 @@ export default function SettingsPage() {
         fetchSettingsData();
     }, [workspaceId, projectId]);
 
-    // --- Permission Logic ---
     const isAdmin = userRole === "ADMIN";
-
-    // Admin OR Creator can edit name and delete
     const canEditName = isAdmin || isCreator;
     const canDelete = isAdmin || isCreator;
-
-    // Admin OR Creator OR Member can edit description (Viewers cannot)
     const canEditDescription = isAdmin || isCreator || userRole === "MEMBER";
 
-    // --- Save Name Handler ---
     const handleSaveName = async () => {
         if (!canEditName) return;
         if (!projectName.trim() || projectName === project?.name) return;
@@ -102,14 +92,13 @@ export default function SettingsPage() {
             setTimeout(() => setNameSuccess(false), 2000);
         } catch (err: any) {
             console.error("Failed to update project name", err);
-            alert(err.message || "Failed to update project name.  Please try again.");
+            alert(err.message || "Failed to update project name. Please try again.");
             if (project) setProjectName(project.name);
         } finally {
             setIsSavingName(false);
         }
     };
 
-    // --- Save Description Handler ---
     const handleSaveDescription = async () => {
         if (!canEditDescription) return;
         if (projectDescription === (project?.description || "")) return;
@@ -124,14 +113,12 @@ export default function SettingsPage() {
         } catch (err: any) {
             console.error("Failed to update project description", err);
             alert(err.message || "Failed to update project description. Please try again.");
-            // Reset to original description on error
             if (project) setProjectDescription(project.description || "");
         } finally {
             setIsSavingDescription(false);
         }
     };
 
-    // --- Delete Project Handler ---
     const handleDeleteProject = async () => {
         if (!canDelete) return;
         if (deleteConfirmText !== project?.name) return;
@@ -139,7 +126,6 @@ export default function SettingsPage() {
         setIsDeleting(true);
         try {
             await projectService.deleteProject(workspaceId, projectId);
-            // Redirect to workspace projects page after deletion
             router.push(`/${workspaceId}`);
         } catch (err: any) {
             console.error("Failed to delete project", err);
@@ -159,7 +145,6 @@ export default function SettingsPage() {
         setDeleteConfirmText("");
     };
 
-    // Check if values have changed
     const hasNameChanged = projectName.trim() !== (project?.name || "") && projectName.trim() !== "";
     const hasDescriptionChanged = projectDescription !== (project?.description || "");
 
@@ -177,7 +162,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="h-full w-full overflow-y-auto pr-4">
+        <div className="h-full w-full overflow-y-auto px-1 sm:pr-4">
             <div className="pb-12 space-y-8">
 
                 {/* --- General Settings --- */}
@@ -187,14 +172,15 @@ export default function SettingsPage() {
                             General Settings
                         </h2>
                     </div>
-                    <div className="p-6 space-y-5">
+                    <div className="p-4 sm:p-6 space-y-5">
 
                         {/* Project Name */}
                         <div>
                             <label htmlFor="projectName" className="block text-sm text-slate-700 mb-1.5">
                                 Project Name
                             </label>
-                            <div className="flex items-center gap-3">
+                            {/* Changed to flex-col on mobile, flex-row on desktop */}
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                                 <input
                                     id="projectName"
                                     type="text"
@@ -208,7 +194,7 @@ export default function SettingsPage() {
                                     <button
                                         onClick={handleSaveName}
                                         disabled={!hasNameChanged || isSavingName}
-                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm min-w-[100px] justify-center ${nameSuccess
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm sm:min-w-[100px] justify-center ${nameSuccess
                                             ? "bg-green-500 hover:bg-green-600 text-white"
                                             : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white"
                                             }`}
@@ -253,7 +239,7 @@ export default function SettingsPage() {
                                     <button
                                         onClick={handleSaveDescription}
                                         disabled={!hasDescriptionChanged || isSavingDescription}
-                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm min-w-[140px] justify-center ${descriptionSuccess
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm w-full sm:w-auto sm:min-w-[140px] justify-center ${descriptionSuccess
                                             ? "bg-green-500 hover:bg-green-600 text-white"
                                             : "bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white"
                                             }`}
@@ -281,7 +267,7 @@ export default function SettingsPage() {
                     </div>
                 </section>
 
-                {/* --- Danger Zone (Only for Admins or Creators) --- */}
+                {/* --- Danger Zone --- */}
                 {canDelete && (
                     <section className="bg-white border border-red-200 rounded-xl overflow-hidden">
                         <div className="px-6 py-4 border-b border-red-100 bg-red-50">
@@ -292,18 +278,18 @@ export default function SettingsPage() {
                                 </h2>
                             </div>
                         </div>
-                        <div className="p-6 space-y-4">
-                            {/* Delete Project */}
-                            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50/30">
-                                <div>
+                        <div className="p-4 sm:p-6 space-y-4">
+                            {/* Delete Project Row */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50/30 gap-4">
+                                <div className="max-w-md">
                                     <h3 className="text-sm font-semibold text-slate-700">Delete Project</h3>
                                     <p className="text-xs text-slate-500 mt-0.5">
-                                        Permanently delete this project and all its data.  This cannot be undone.
+                                        Permanently delete this project and all its data. This cannot be undone.
                                     </p>
                                 </div>
                                 <button
                                     onClick={openDeleteModal}
-                                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                     Delete
@@ -312,21 +298,20 @@ export default function SettingsPage() {
                         </div>
                     </section>
                 )}
-
             </div>
 
             {/* --- Delete Confirmation Modal --- */}
             {isDeleteModalOpen && canDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm transition-all duration-300">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col transform transition-all animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col transform transition-all animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
 
                         {/* Header */}
-                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 rounded-t-2xl">
+                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-red-100 rounded-full">
                                     <Trash2 className="w-5 h-5 text-red-600" />
                                 </div>
-                                <h2 className="text-xl font-semibold text-gray-900">Delete Project</h2>
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Delete Project</h2>
                             </div>
                             <button
                                 onClick={closeDeleteModal}
@@ -339,40 +324,40 @@ export default function SettingsPage() {
                         {/* Content */}
                         <div className="p-6 space-y-4">
                             <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-                                <p className="text-sm text-red-800">
+                                <p className="text-sm text-red-800 leading-relaxed">
                                     <strong>Warning: </strong> This action cannot be undone. This will permanently delete the
-                                    <strong className="mx-1">{project?.name}</strong>
+                                    <strong className="mx-1 break-all">{project?.name}</strong>
                                     project and all of its work items.
                                 </p>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Type <span className="font-mono text-red-600">{project?.name}</span> to confirm
+                                    Type <span className="font-mono text-red-600 break-all">{project?.name}</span> to confirm
                                 </label>
                                 <input
                                     type="text"
                                     value={deleteConfirmText}
                                     onChange={(e) => setDeleteConfirmText(e.target.value)}
                                     placeholder="Enter project name"
-                                    className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus:ring-2 focus: ring-red-500/20 focus: border-red-500 outline-none transition-all font-medium text-gray-900 placeholder: text-gray-400"
+                                    className="w-full px-4 h-11 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all font-medium text-gray-900"
                                     autoFocus
                                 />
                             </div>
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 shrink-0 rounded-b-2xl">
+                        <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3 shrink-0">
                             <button
                                 onClick={closeDeleteModal}
-                                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 rounded-xl font-medium transition-all shadow-sm"
+                                className="w-full sm:w-auto px-5 py-2.5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl font-medium transition-all shadow-sm"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleDeleteProject}
                                 disabled={deleteConfirmText !== project?.name || isDeleting}
-                                className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
+                                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md font-medium"
                             >
                                 {isDeleting ? (
                                     <>
@@ -387,7 +372,6 @@ export default function SettingsPage() {
                                 )}
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}

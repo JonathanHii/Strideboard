@@ -14,10 +14,11 @@ export default function MainLayout({
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <GlobalHeader />
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto pt-5 md:pt-8 pb-8 pl-8 pr-8">
           {children}
         </main>
       </div>
     </div>
   );
 }
+

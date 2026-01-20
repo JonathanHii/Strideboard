@@ -11,10 +11,10 @@ export default function ProfilePage() {
 
     // Saving States
     const [savingInfo, setSavingInfo] = useState(false);
-    const [infoSaveSuccess, setInfoSaveSuccess] = useState(false); // NEW
+    const [infoSaveSuccess, setInfoSaveSuccess] = useState(false);
 
     const [savingPassword, setSavingPassword] = useState(false);
-    const [passwordSaveSuccess, setPasswordSaveSuccess] = useState(false); // NEW
+    const [passwordSaveSuccess, setPasswordSaveSuccess] = useState(false);
 
     // Form States
     const [formData, setFormData] = useState({
@@ -103,9 +103,10 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="pb-8 max-w-7xl mx-auto">
+        <div className="pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
-            <div className="mb-8 flex items-center justify-between">
+            {/* UPDATED: Stack on mobile (flex-col), row on desktop (sm:flex-row) */}
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
                     <p className="text-gray-500 mt-1">Manage your account settings and preferences.</p>
@@ -113,14 +114,14 @@ export default function ProfilePage() {
 
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline"
+                    className="self-start sm:self-center flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Go Back
                 </button>
             </div>
 
-            {/* Grid Layout */}
+            {/* Grid Layout - Already responsive (grid-cols-1 by default) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* --- Column 1: General Information --- */}
@@ -138,6 +139,7 @@ export default function ProfilePage() {
 
                         <div className="p-6">
                             <form onSubmit={handleInfoUpdate} className="space-y-6">
+                                {/* UPDATED: Stack inputs on mobile, side-by-side on desktop */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-700">Display Name</label>
@@ -172,7 +174,7 @@ export default function ProfilePage() {
                                     <button
                                         type="submit"
                                         disabled={savingInfo}
-                                        className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all font-medium shadow-sm hover:shadow disabled:opacity-70 disabled:cursor-not-allowed min-w-[140px] justify-center 
+                                        className={`w-full sm:w-auto px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all font-medium shadow-sm hover:shadow disabled:opacity-70 disabled:cursor-not-allowed min-w-[140px] justify-center 
                                             ${infoSaveSuccess
                                                 ? "bg-green-600 hover:bg-green-700 text-white"
                                                 : "bg-indigo-600 hover:bg-indigo-700 text-white"

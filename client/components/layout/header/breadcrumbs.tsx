@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ChevronRight, Loader2 } from "lucide-react";
+// ADDED: ChevronLeft
+import { ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { workspaceService } from "@/services/workspace-service";
 import { projectService } from "@/services/project-service";
 import { Workspace, Project } from "@/types/types";
@@ -29,17 +30,14 @@ export default function Breadcrumbs() {
     try {
       setLoading(true);
 
-      // Define our fetch tasks
       const fetchTasks: Promise<any>[] = [
         workspaceService.getWorkspaceById(workspaceId)
       ];
 
-      // Only fetch project if ID exists in URL
       if (projectId) {
         fetchTasks.push(projectService.getProjectById(workspaceId, projectId));
       }
 
-      // Execute parallel requests
       const [wsData, pData] = await Promise.all(fetchTasks);
 
       setWorkspace(wsData);
@@ -65,36 +63,57 @@ export default function Breadcrumbs() {
   if (pathname === "/workspaces") return null;
   if (pathname === "/profile") return null;
 
+  // Helper to determine where the back button goes
+  const getBackPath = () => {
+    if (projectId) return `/${workspaceId}`; // If on project, go to workspace
+    return "/workspaces"; // If on workspace, go to root
+  };
+
   return (
     <nav className="flex items-center text-sm font-medium h-6">
-      <Link
-        href="/workspaces"
-        className="text-gray-500 hover:text-gray-900 transition-colors"
-      >
-        Workspaces
-      </Link>
+      
+      {/* --- MOBILE VIEW: Back Button Only --- */}
+      <div className="md:hidden flex items-center">
+        <Link 
+            href={getBackPath()} 
+            className="flex items-center text-gray-500 hover:text-gray-900 transition-colors"
+        >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back
+        </Link>
+      </div>
 
-      {workspaceId && (
-        <>
-          <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-          <Link
-            href={`/${workspaceId}`}
-            className={`transition-colors hover:text-indigo-600 ${!projectId ? "text-gray-900 font-semibold" : "text-gray-500"
-              }`}
-          >
-            {workspace ? workspace.name : "... "}
-          </Link>
-        </>
-      )}
+      {/* --- DESKTOP VIEW: Full Breadcrumbs --- */}
+      <div className="hidden md:flex items-center">
+        <Link
+            href="/workspaces"
+            className="text-gray-500 hover:text-gray-900 transition-colors"
+        >
+            Workspaces
+        </Link>
 
-      {projectId && (
-        <>
-          <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-          <span className="text-gray-900 font-semibold">
-            {project ? project.name : "... "}
-          </span>
-        </>
-      )}
+        {workspaceId && (
+            <>
+            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+            <Link
+                href={`/${workspaceId}`}
+                className={`transition-colors hover:text-indigo-600 ${!projectId ? "text-gray-900 font-semibold" : "text-gray-500"
+                }`}
+            >
+                {workspace ? workspace.name : "... "}
+            </Link>
+            </>
+        )}
+
+        {projectId && (
+            <>
+            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+            <span className="text-gray-900 font-semibold">
+                {project ? project.name : "... "}
+            </span>
+            </>
+        )}
+      </div>
 
       {loading && <Loader2 className="w-3 h-3 ml-3 animate-spin text-gray-300" />}
     </nav>

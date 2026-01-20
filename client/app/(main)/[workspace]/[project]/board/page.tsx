@@ -165,16 +165,13 @@ export default function BoardPage() {
                         return [...currentItems, event.workItem];
                     }
                     return currentItems;
-
                 case 'UPDATED':
                     if (!event.workItem) return currentItems;
                     return currentItems.map(item =>
                         item.id === event.workItem!.id ? event.workItem! : item
                     ).sort((a, b) => a.position - b.position);
-
                 case 'DELETED':
                     return currentItems.filter(item => item.id !== event.workItemId);
-
                 default:
                     return currentItems;
             }
@@ -184,7 +181,6 @@ export default function BoardPage() {
     const isConnected = (socketResult as any)?.isConnected ?? true;
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value);
-    const handleClearSearch = () => setSearchQuery("");
     const handleCreateSuccess = async () => await fetchBoardData();
     const handleItemClick = (item: WorkItem) => setSelectedItem(item);
     const handleCloseDetail = () => setSelectedItem(null);
@@ -206,27 +202,33 @@ export default function BoardPage() {
     return (
         <div className="h-full w-full flex flex-col">
 
-            <div className="flex items-center justify-between mb-6 flex-none">
-                <div className="flex items-center gap-4">
-                    <div className="relative w-72">
+            {/* --- Board Toolbar (EXACT MATCH TO LIST PAGE) --- */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-4 flex-none">
+
+                {/* Search Bar & Mobile Add Button */}
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Search items..."
                             value={searchQuery}
                             onChange={handleSearchChange}
-                            className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus: ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         />
-                        {searchQuery && (
-                            <button onClick={handleClearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm font-medium">✕</button>
-                        )}
                     </div>
-                    {searchQuery && (
-                        <span className="text-xs text-slate-500">Found {totalFilteredCount} of {items.length} items</span>
+                    {/* Mobile Only: Add Button (Small +) */}
+                    {!isViewer && (
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="md:hidden flex items-center justify-center h-10 w-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm shadow-indigo-100 transition-all flex-shrink-0"
+                        >
+                            <Plus className="h-5 w-5" />
+                        </button>
                     )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between md:justify-end gap-3">
                     <div className="flex items-center gap-1.5 px-2">
                         <div className={`h-1.5 w-1.5 rounded-full ${isConnected ? "bg-green-500" : "bg-red-400"}`} />
                         <span className={`text-xs font-medium ${isConnected ? "text-green-600" : "text-red-500"}`}>
@@ -234,10 +236,11 @@ export default function BoardPage() {
                         </span>
                     </div>
 
+                    {/* Desktop Only: Add Button (Full Text) */}
                     {!isViewer && (
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm shadow-indigo-100"
+                            className="hidden md:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm shadow-indigo-100"
                         >
                             <Plus className="h-4 w-4" /> New Item
                         </button>
@@ -247,82 +250,85 @@ export default function BoardPage() {
 
             {isBrowser ? (
                 <DragDropContext onDragEnd={onDragEnd}>
-                    <div className="flex flex-1 gap-6 overflow-x-auto overflow-y-hidden min-h-0 pb-4">
-                        {COLUMNS.map((status) => (
-                            <div key={status} className="flex flex-col min-w-[280px] flex-1 max-w-[350px] h-full max-h-full">
 
-                                <div className="flex items-center justify-between mb-3 px-1 flex-none">
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                                            {status.replace("_", " ")}
-                                        </h3>
-                                        <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                                            {groupedItems[status].length}
-                                        </span>
-                                    </div>
+                    <div className="flex flex-1 gap-0 md:gap-6 overflow-x-auto overflow-y-hidden min-h-0 pb-4 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">                        {COLUMNS.map((status) => (
+                        <div
+                            key={status}
+                            className="flex flex-col min-w-full md:min-w-[280px] flex-1 max-w-full md:max-w-[350px] h-full max-h-full snap-center px-4 md:px-0"
+                        >
+
+                            <div className="flex items-center justify-between mb-3 px-1 flex-none">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                        {status.replace("_", " ")}
+                                    </h3>
+                                    <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                        {groupedItems[status].length}
+                                    </span>
                                 </div>
+                            </div>
 
-                                <div className="flex-1 min-h-0 bg-slate-50 rounded-xl p-2 flex flex-col gap-3 border border-slate-100">
-                                    <Droppable droppableId={status}>
-                                        {(provided, snapshot) => (
-                                            <div
-                                                {...provided.droppableProps}
-                                                ref={provided.innerRef}
-                                                className={`
+                            <div className="flex-1 min-h-0 bg-slate-50 rounded-xl p-2 flex flex-col gap-3 border border-slate-100">
+                                <Droppable droppableId={status}>
+                                    {(provided, snapshot) => (
+                                        <div
+                                            {...provided.droppableProps}
+                                            ref={provided.innerRef}
+                                            className={`
                                                     flex-1 overflow-y-auto min-h-[100px] flex flex-col gap-3 pr-1
                                                     [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]
                                                     ${snapshot.isDraggingOver ? "bg-slate-100/80 ring-2 ring-indigo-500/10 rounded-lg transition-all" : ""}
                                                 `}
-                                            >
-                                                {groupedItems[status].map((item, index) => (
-                                                    <Draggable
-                                                        key={item.id}
-                                                        draggableId={item.id}
-                                                        index={index}
-                                                        isDragDisabled={isViewer}
-                                                    >
-                                                        {(provided, snapshot) => (
-                                                            <div
-                                                                ref={provided.innerRef}
-                                                                {...provided.draggableProps}
-                                                                {...provided.dragHandleProps}
-                                                                style={{
-                                                                    ...provided.draggableProps.style,
-                                                                    opacity: snapshot.isDragging ? 0.9 : 1,
-                                                                }}
-                                                                className={`${snapshot.isDragging ? "shadow-xl ring-2 ring-indigo-500 cursor-grabbing rounded-lg bg-white z-50" : "cursor-grab"}`}
-                                                            >
-                                                                <WorkItemCard
-                                                                    item={item}
-                                                                    searchQuery={searchQuery}
-                                                                    onClick={() => handleItemClick(item)}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                ))}
-                                                {provided.placeholder}
+                                        >
+                                            {groupedItems[status].map((item, index) => (
+                                                <Draggable
+                                                    key={item.id}
+                                                    draggableId={item.id}
+                                                    index={index}
+                                                    isDragDisabled={isViewer}
+                                                >
+                                                    {(provided, snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                            style={{
+                                                                ...provided.draggableProps.style,
+                                                                opacity: snapshot.isDragging ? 0.9 : 1,
+                                                            }}
+                                                            className={`${snapshot.isDragging ? "shadow-xl ring-2 ring-indigo-500 cursor-grabbing rounded-lg bg-white z-50" : "cursor-grab"}`}
+                                                        >
+                                                            <WorkItemCard
+                                                                item={item}
+                                                                searchQuery={searchQuery}
+                                                                onClick={() => handleItemClick(item)}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </Draggable>
+                                            ))}
+                                            {provided.placeholder}
 
-                                                {groupedItems[status].length === 0 && !snapshot.isDraggingOver && (
-                                                    <div className="h-24 flex items-center justify-center text-slate-300 text-xs border-2 border-dashed border-slate-200 rounded-lg m-1">
-                                                        {items.length === 0 && !isViewer ? (
-                                                            <button
-                                                                onClick={() => setIsCreateModalOpen(true)}
-                                                                className="flex items-center gap-1 text-indigo-500 hover:text-indigo-600 transition-colors"
-                                                            >
-                                                                <Plus className="h-4 w-4" /> Create work item
-                                                            </button>
-                                                        ) : (
-                                                            "Drop here"
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </Droppable>
-                                </div>
+                                            {groupedItems[status].length === 0 && !snapshot.isDraggingOver && (
+                                                <div className="h-24 flex items-center justify-center text-slate-300 text-xs border-2 border-dashed border-slate-200 rounded-lg m-1">
+                                                    {items.length === 0 && !isViewer ? (
+                                                        <button
+                                                            onClick={() => setIsCreateModalOpen(true)}
+                                                            className="flex items-center gap-1 text-indigo-500 hover:text-indigo-600 transition-colors"
+                                                        >
+                                                            <Plus className="h-4 w-4" /> Create work item
+                                                        </button>
+                                                    ) : (
+                                                        "Drop here"
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </Droppable>
                             </div>
-                        ))}
+                        </div>
+                    ))}
                     </div>
                 </DragDropContext>
             ) : (
