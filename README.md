@@ -2,6 +2,8 @@
 
 A Project Management Platform.
 
+[Live Demo](https://strideboard.vercel.app/)
+
 ## Quick Start
 
 ### 1. Clone the repository
